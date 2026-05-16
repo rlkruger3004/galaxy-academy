@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxy Academy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+:root {
+  --bg:#f5f7ff; --bg2:#eef1ff; --surface:#ffffff; --border:#dde3ff; --border2:#c5ceff;
+  --navy:#1e2d7a; --blue:#2f6de0; --blue-light:#e8eeff; --blue-mid:#b5c7f7;
+  --coral:#f05a28; --teal:#0bbfa0; --teal-light:#e0faf5;
+  --amber:#f5a623; --amber-light:#fff8e8; --purple:#7c3aed;
+  --green:#1aab5e; --green-light:#e8faf2; --red:#e53935; --red-light:#ffebee;
+  --pink:#e91e8c; --pink-light:#fde8f4;
+  --text:#1a1f3c; --text-mid:#3d4875; --text-dim:#8892bf;
+  --radius:18px; --radius-sm:10px;
+  --shadow:0 2px 12px rgba(30,45,122,0.09); --shadow-md:0 4px 20px rgba(30,45,122,0.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+#bg-shapes{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-shape{position:absolute;border-radius:50%;opacity:0.06;animation:drift var(--dur,20s) ease-in-out infinite alternate}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(var(--tx,20px),var(--ty,20px)) scale(1.05)}}
+#app{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:16px}
+header{text-align:center;padding:20px 0 10px}
+header h1{font-family:'Fredoka One',sans-serif;font-size:clamp(1.8rem,5vw,3rem);color:var(--navy);letter-spacing:1px}
+header h1 span{color:var(--coral)}
+header p{color:var(--text-dim);font-size:0.92rem;margin-top:4px}
+.rocket-icon{font-size:2rem;display:inline-block;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.score-bar{display:flex;justify-content:center;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:50px;padding:8px 24px;margin:10px auto 14px;width:fit-content;box-shadow:var(--shadow);flex-wrap:wrap}
+.score-item{text-align:center;padding:0 10px}
+.score-num{font-family:'Fredoka One',sans-serif;font-size:1.6rem;color:var(--navy);line-height:1}
+.score-label{font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.score-div{width:1px;height:32px;background:var(--border)}
+#nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 16px}
+.nav-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--text-mid);font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:700;padding:9px 16px;border-radius:50px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:5px;box-shadow:var(--shadow)}
+.nav-btn:hover{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
+.nav-btn.active{background:var(--navy);border-color:var(--navy);color:white}
+.nav-sep{width:1px;height:30px;background:var(--border);align-self:center}
+.section{display:none;animation:fadeIn .28s ease}
+.section.visible{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-family:'Fredoka One',sans-serif;font-size:1.35rem;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 24px;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .15s;min-height:48px;min-width:80px}
+.btn:active{transform:scale(0.96)}
+.btn-navy{background:var(--navy);color:white}.btn-navy:hover{background:#253998}
+.btn-coral{background:var(--coral);color:white}.btn-coral:hover{filter:brightness(1.08)}
+.btn-teal{background:var(--teal);color:white}
+.btn-outline{background:transparent;border:2px solid var(--border2);color:var(--text-mid)}
+.btn-outline:hover{border-color:var(--navy);color:var(--navy)}
+.btn-sm{padding:8px 16px;font-size:0.85rem;min-height:38px}
+.game-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.game-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--shadow)}
+.game-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.game-card .icon{font-size:2.4rem;margin-bottom:8px}
+.game-card h3{font-family:'Fredoka One',sans-serif;font-size:1.15rem;color:var(--navy)}
+.game-card p{font-size:0.78rem;color:var(--text-dim);margin-top:4px}
+.tag{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;background:var(--blue-light);color:var(--blue)}
+.tag-fun{background:var(--pink-light);color:var(--pink)}
+.tag-teal{background:var(--teal-light);color:var(--teal)}
+.cat-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.cat-tab{padding:7px 14px;border:1.5px solid var(--border);border-radius:50px;background:var(--surface);color:var(--text-dim);font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all .15s}
+.cat-tab:hover{border-color:var(--blue-mid);color:var(--blue)}
+.cat-tab.active{background:var(--navy);border-color:var(--navy);color:white}
+.progress-wrap{background:var(--bg2);border-radius:20px;height:12px;overflow:hidden;margin:6px 0 10px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:20px;transition:width .4s ease}
+.math-eq{font-family:'Fredoka One',sans-serif;font-size:clamp(1.8rem,7vw,3rem);color:var(--navy);text-align:center;margin-bottom:20px}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px;margin:0 auto}
+.choice-btn{background:var(--surface);border:2.5px solid var(--border);border-radius:var(--radius);padding:16px 10px;font-family:'Fredoka One',sans-serif;font-size:1.3rem;color:var(--navy);cursor:pointer;transition:all .15s;text-align:center;box-shadow:var(--shadow)}
+.choice-btn:hover{border-color:var(--blue);transform:scale(1.04);box-shadow:var(--shadow-md)}
+.choice-btn.correct{border-color:var(--green);background:var(--green-light);color:var(--green);animation:pop .35s ease}
+.choice-btn.wrong{border-color:var(--red);background:var(--red-light);animation:shake .3s ease}
+.choice-btn:disabled{cursor:default}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.status-msg{text-align:center;font-family:'Fredoka One',sans-serif;font-size:1.15rem;color:var(--blue);min-height:2rem;padding:6px 0}
+.clue-box{background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:var(--radius);padding:16px;margin-bottom:14px;font-size:1.05rem;text-align:center;color:var(--navy);line-height:1.5}
+.clue-box strong{color:var(--coral)}
+.sci-explain{background:var(--amber-light);border:1.5px solid var(--amber);border-radius:var(--radius-sm);padding:12px 16px;margin-top:10px;font-size:0.92rem;color:#5a3a00;line-height:1.5;animation:fadeIn .3s ease}
+.sci-explain strong{color:var(--coral)}
+.ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:270px;margin:12px auto}
+.ttt-cell{aspect-ratio:1;min-height:78px;background:var(--bg);border:2px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',sans-serif;font-size:2.4rem;cursor:pointer;transition:all .15s}
+.ttt-cell:hover:not(.taken){background:var(--blue-light);border-color:var(--blue)}
+.ttt-cell.X{color:var(--blue)}.ttt-cell.O{color:var(--coral)}
+.ttt-cell.win-cell{background:var(--amber-light);border-color:var(--amber)}
+.ttt-scores{display:flex;gap:10px;justify-content:center;margin:8px 0;flex-wrap:wrap}
+.ttt-box{background:var(--bg2);border-radius:var(--radius-sm);padding:8px 16px;text-align:center;border:1.5px solid var(--border)}
+.ttt-box .bname{font-size:0.72rem;color:var(--text-dim)}
+.ttt-box .bval{font-family:'Fredoka One',sans-serif;font-size:1.4rem}
+.word-display{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.word-letter{width:44px;height:52px;border-bottom:4px solid var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:var(--navy)}
+.alpha-grid{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:12px 0}
+.alpha-btn{width:42px;height:42px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--navy);font-family:'Fredoka One',sans-serif;font-size:1.05rem;cursor:pointer;transition:all .15s}
+.alpha-btn:hover:not(:disabled){border-color:var(--blue);background:var(--blue-light)}
+.alpha-btn:disabled{opacity:.35;cursor:default}
+.alpha-btn.hit{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.alpha-btn.miss{border-color:var(--red);background:var(--red-light);color:var(--red)}
+.mode-row{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.mode-btn{padding:8px 18px;border:2px solid var(--border);border-radius:50px;background:transparent;color:var(--text-dim);font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;transition:all .18s}
+.mode-btn.active{border-color:var(--navy);color:var(--navy);background:var(--blue-light)}
+.mode-btn:hover{border-color:var(--blue-mid);color:var(--blue)}
+.ctrl-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ctrl-row.center{justify-content:center}
+.home-hero{background:linear-gradient(135deg,var(--navy) 0%,#2f4ab8 100%);border-radius:var(--radius);padding:28px;text-align:center;margin-bottom:16px;color:white;box-shadow:var(--shadow-md)}
+.home-hero h2{font-family:'Fredoka One',sans-serif;font-size:1.7rem}
+.home-hero p{opacity:.75;font-size:0.9rem;margin-top:5px}
+.planet-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.planet-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;flex:1;min-width:130px;text-align:center;box-shadow:var(--shadow)}
+.planet-card .pn{font-family:'Fredoka One',sans-serif;font-size:2rem;color:var(--navy)}
+.planet-card .pl{font-size:0.72rem;color:var(--text-dim)}
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;font-family:'Fredoka One',sans-serif;font-size:1.2rem;padding:11px 26px;border-radius:50px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-md)}
+#toast.show{opacity:1}
+.story-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px;box-shadow:var(--shadow)}
+.story-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.story-icon{font-size:2.8rem;flex-shrink:0;width:58px;height:58px;background:var(--blue-light);border-radius:14px;display:flex;align-items:center;justify-content:center}
+.story-title{font-family:'Fredoka One',sans-serif;font-size:1.25rem;color:var(--navy);margin-bottom:3px}
+.story-level{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:var(--teal-light);color:var(--teal)}
+.story-body{font-size:1.1rem;line-height:1.9;color:var(--text);font-weight:600;margin-bottom:16px}
+.hw{background:var(--amber-light);border-bottom:2px solid var(--amber);border-radius:4px;padding:1px 3px;cursor:pointer;transition:background .15s}
+.hw:hover{background:#ffe0a0}
+.word-def-popup{background:var(--navy);color:white;border-radius:var(--radius-sm);padding:8px 14px;font-size:0.85rem;margin:-4px 0 12px;animation:fadeIn .2s}
+.story-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.story-pill{padding:8px 16px;border:1.5px solid var(--border);border-radius:50px;background:var(--surface);color:var(--text-mid);font-size:0.85rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.story-pill:hover{border-color:var(--blue-mid);color:var(--blue)}
+.story-pill.active{background:var(--coral);border-color:var(--coral);color:white}
+.reading-q{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:12px;line-height:1.4}
+.sentence-list{list-style:none;margin:10px 0}
+.sent-item{background:var(--bg2);border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:8px;font-size:0.95rem;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;user-select:none}
+.sent-item:hover{border-color:var(--blue);background:var(--blue-light)}
+.sent-num{width:28px;height:28px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',sans-serif;font-size:1rem;flex-shrink:0}
+.sent-item.correct-order{border-color:var(--green);background:var(--green-light)}
+.sent-item.wrong-order{border-color:var(--red);background:var(--red-light)}
+.word-bank{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px;min-height:48px;background:var(--bg2);border-radius:var(--radius-sm);padding:10px;border:1.5px dashed var(--border2)}
+.wb-word{background:var(--surface);border:2px solid var(--blue-mid);color:var(--navy);border-radius:50px;padding:7px 16px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s;user-select:none}
+.wb-word:hover{background:var(--blue-light)}
+.wb-word.selected{background:var(--navy);color:white;border-color:var(--navy)}
+.fill-blank{display:inline-block;min-width:80px;height:28px;border-bottom:3px solid var(--navy);vertical-align:bottom;margin:0 4px;background:transparent;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--blue);text-align:center;padding-bottom:2px;cursor:pointer;transition:all .15s}
+.fill-blank:hover{background:var(--blue-light)}
+.fill-blank.filled{border-color:var(--teal);color:var(--teal)}
+.fill-blank.correct-fill{border-color:var(--green);color:var(--green);background:var(--green-light);border-radius:6px}
+.fill-blank.wrong-fill{border-color:var(--red);color:var(--red);background:var(--red-light);border-radius:6px}
+@media(max-width:520px){.choice-grid{grid-template-columns:1fr 1fr}}
+
+.robot-bubble{background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:16px;padding:10px 18px;font-size:1rem;font-weight:700;color:var(--navy);min-height:38px;margin:8px auto;max-width:420px;text-align:center;transition:all .3s}
+.sound-box-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px}
+.sound-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sound-box input{width:72px;height:62px;border:3px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--navy);font-family:"Fredoka One",sans-serif;font-size:1.4rem;text-align:center;outline:none;transition:all .2s;box-shadow:var(--shadow)}
+.sound-box input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,109,224,0.15)}
+.sound-box input.correct-box{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.sound-box input.wrong-box{border-color:var(--amber);background:var(--amber-light);color:#7a4800}
+.sound-box input.fixed-box{border-color:var(--teal);background:var(--teal-light);color:var(--teal)}
+.sound-box input.heart-box{border-color:var(--pink);background:var(--pink-light);}
+.sound-label{font-size:0.7rem;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.heart-badge{position:absolute;top:-10px;right:-8px;font-size:1rem;animation:pulse-heart 1s ease infinite}
+@keyframes pulse-heart{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+.spell-feedback-card{border-radius:var(--radius-sm);padding:12px 16px;font-size:0.92rem;line-height:1.55;font-weight:600;animation:fadeIn .3s ease}
+.spell-fb-correct{background:var(--green-light);border:1.5px solid var(--green);color:#0a4a28}
+.spell-fb-partial{background:var(--amber-light);border:1.5px solid var(--amber);color:#5a3a00}
+.spell-fb-repair{background:var(--teal-light);border:1.5px solid var(--teal);color:#004d3e}
+.word-image{font-size:3rem;margin-bottom:4px;display:block}
+.word-cue{font-family:"Fredoka One",sans-serif;font-size:1.1rem;color:var(--navy);margin-bottom:6px}
+.point-pop{display:inline-block;font-family:"Fredoka One",sans-serif;font-size:0.9rem;padding:2px 10px;border-radius:20px;margin:2px;animation:fadeIn .3s}
+.point-pop-green{background:var(--green-light);color:var(--green);border:1px solid var(--green)}
+.point-pop-amber{background:var(--amber-light);color:#7a4800;border:1px solid var(--amber)}
+</style>
+</head>
+<body>
+<div id="bg-shapes">
+  <div class="bg-shape" style="width:400px;height:400px;top:-100px;right:-80px;background:#2f6de0;--dur:22s;--tx:30px;--ty:20px"></div>
+  <div class="bg-shape" style="width:300px;height:300px;bottom:5%;left:-60px;background:#7c3aed;--dur:18s;--tx:-20px;--ty:25px"></div>
+  <div class="bg-shape" style="width:200px;height:200px;top:40%;right:8%;background:#0bbfa0;--dur:26s;--tx:15px;--ty:-20px"></div>
+</div>
+<div id="app">
+  <header>
+    <div class="rocket-icon">&#x1F680;</div>
+    <h1>Galaxy <span>Academy</span></h1>
+    <p>Learn, read, and blast off to the stars!</p>
+  </header>
+  <div class="score-bar">
+    <div class="score-item"><div class="score-num" id="total-stars">0</div><div class="score-label">&#x2B50; Stars</div></div>
+    <div class="score-div"></div>
+    <div class="score-item"><div class="score-num" id="level-display">1</div><div class="score-label">&#x1FA90; Level</div></div>
+    <div class="score-div"></div>
+    <div class="score-item"><div class="score-num" id="streak-display">0</div><div class="score-label">&#x1F525; Streak</div></div>
+  </div>
+  <nav id="nav">
+    <button class="nav-btn active" id="nav-home" data-sec="home">&#x1F3E0; Home</button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" id="nav-math" data-sec="math">&#x1F522; Math</button>
+    <button class="nav-btn" id="nav-words" data-sec="words">&#x1F4D6; Words</button>
+    <button class="nav-btn" id="nav-reading" data-sec="reading">&#x1F4DA; Reading</button>
+    <button class="nav-btn" id="nav-science" data-sec="science">&#x1F52C; Science</button>
+    <button class="nav-btn" id="nav-spelling" data-sec="spelling">&#x1F916; Spelling</button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" id="nav-ttt" data-sec="ttt">&#x2B1C; Tic Tac Toe</button>
+    <button class="nav-btn" id="nav-hangman" data-sec="hangman">&#x1FA90; Hangman</button>
+  </nav>
+
+  <!-- HOME -->
+  <div id="section-home" class="section visible">
+    <div class="home-hero">
+      <div style="font-size:3rem">&#x1F30C;</div>
+      <h2>Welcome, Space Pilot!</h2>
+      <p>Earn stars in Math, Words, Reading and Science. Level up to explore new planets!</p>
+    </div>
+    <div class="planet-row">
+      <div class="planet-card"><div class="pn" id="hs-math">0</div><div class="pl">Math Stars</div></div>
+      <div class="planet-card"><div class="pn" id="hs-words">0</div><div class="pl">Word Stars</div></div>
+      <div class="planet-card"><div class="pn" id="hs-reading">0</div><div class="pl">Reading Stars</div></div>
+      <div class="planet-card"><div class="pn" id="hs-science">0</div><div class="pl">Science Stars</div></div>
+      <div class="planet-card"><div class="pn" id="hs-spelling">0</div><div class="pl">Spelling Stars</div></div>
+    </div>
+    <div class="card"><div class="card-title">&#x1F5FA;&#xFE0F; Mission Map</div><div id="planet-progress"></div></div>
+    <div class="game-grid">
+      <div class="game-card" data-sec="math"><div class="icon">&#x1F522;</div><h3>Number Lab</h3><p>Add, subtract, multiply, place value &amp; patterns</p><div class="tag">Grade 1&#x2013;2 Math</div></div>
+      <div class="game-card" data-sec="words"><div class="icon">&#x1F4D6;</div><h3>Word Station</h3><p>Phonics, vocabulary &amp; Hink Pinks</p><div class="tag">Science of Reading</div></div>
+      <div class="game-card" data-sec="reading"><div class="icon">&#x1F4DA;</div><h3>Reading Rockets</h3><p>Short stories + comprehension questions!</p><div class="tag tag-teal">NEW! Comprehension</div></div>
+      <div class="game-card" data-sec="science"><div class="icon">&#x1F52C;</div><h3>Science Bay</h3><p>Light, sound, living things &amp; engineering</p><div class="tag">NGSS</div></div>
+      <div class="game-card" data-sec="spelling"><div class="icon">&#x1F916;</div><h3>Robot Repair</h3><p>Fix the robot's broken words using sound boxes!</p><div class="tag tag-teal">Spelling Lab</div></div>
+      <div class="game-card" data-sec="ttt"><div class="icon">&#x2B1C;</div><h3>Tic Tac Toe</h3><p>Play vs computer or a friend!</p><div class="tag tag-fun">Fun Zone</div></div>
+      <div class="game-card" data-sec="hangman"><div class="icon">&#x1FA90;</div><h3>Hangman</h3><p>Guess the word before the rocket crashes!</p><div class="tag tag-fun">Fun Zone</div></div>
+    </div>
+  </div>
+
+  <!-- MATH -->
+  <div id="section-math" class="section">
+    <div class="card">
+      <div class="card-title">&#x1F522; Number Lab</div>
+      <div class="cat-tabs" id="math-cats">
+        <button class="cat-tab active" data-cat="add">&#x2795; Add &amp; Subtract</button>
+        <button class="cat-tab" data-cat="multiply">&#x2716;&#xFE0F; Multiply</button>
+        <button class="cat-tab" data-cat="place">&#x1F3DB;&#xFE0F; Place Value</button>
+        <button class="cat-tab" data-cat="shape">&#x1F537; Shapes</button>
+        <button class="cat-tab" data-cat="pattern">&#x1F501; Patterns</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="math-progress" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:8px">
+        <span id="math-q-count">Question 1/10</span><span id="math-score-inline">Stars: 0</span>
+      </div>
+      <div id="math-problem-area"></div>
+      <div class="status-msg" id="math-status"></div>
+    </div>
+  </div>
+
+  <!-- WORDS -->
+  <div id="section-words" class="section">
+    <div class="card">
+      <div class="card-title">&#x1F4D6; Word Station</div>
+      <div class="cat-tabs" id="word-cats">
+        <button class="cat-tab active" data-cat="phonics">&#x1F524; Phonics</button>
+        <button class="cat-tab" data-cat="vocab">&#x1F4AC; Vocabulary</button>
+        <button class="cat-tab" data-cat="hinkpink">&#x1F3B5; Hink Pinks</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="word-progress" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:8px">
+        <span id="word-q-count">Question 1/10</span><span id="word-score-inline">Stars: 0</span>
+      </div>
+      <div id="word-problem-area"></div>
+      <div class="status-msg" id="word-status"></div>
+    </div>
+  </div>
+
+  <!-- READING -->
+  <div id="section-reading" class="section">
+    <div class="card">
+      <div class="card-title">&#x1F4DA; Reading Rockets</div>
+      <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">Read the story then answer questions to earn stars! Tap <span style="background:var(--amber-light);border-bottom:2px solid var(--amber);padding:1px 4px;border-radius:4px;font-size:0.82rem;font-weight:700">orange words</span> to see what they mean.</p>
+      <div class="story-nav" id="story-nav"></div>
+    </div>
+    <div id="story-display"></div>
+    <div class="card" id="reading-questions" style="display:none">
+      <div class="card-title">&#x1F914; Comprehension Check</div>
+      <div class="cat-tabs" id="comp-tabs">
+        <button class="cat-tab active" data-tab="recall">&#x1F9E0; Remember It</button>
+        <button class="cat-tab" data-tab="vocab">&#x1F4DD; Word Meaning</button>
+        <button class="cat-tab" data-tab="order">&#x1F522; Story Order</button>
+        <button class="cat-tab" data-tab="fill">&#x270F;&#xFE0F; Fill the Blank</button>
+      </div>
+      <div id="comp-area"></div>
+      <div class="status-msg" id="reading-status"></div>
+    </div>
+  </div>
+
+  <!-- SCIENCE -->
+  <div id="section-science" class="section">
+    <div class="card">
+      <div class="card-title">&#x1F52C; Science Bay</div>
+      <div class="cat-tabs" id="sci-cats">
+        <button class="cat-tab active" data-cat="physics">&#x1F4A1; Light &amp; Sound</button>
+        <button class="cat-tab" data-cat="life">&#x1F33F; Living Things</button>
+        <button class="cat-tab" data-cat="engineering">&#x1F3D7;&#xFE0F; Engineering</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="sci-progress" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:8px">
+        <span id="sci-q-count">Question 1/10</span><span id="sci-score-inline">Stars: 0</span>
+      </div>
+      <div id="sci-problem-area"></div>
+      <div class="status-msg" id="sci-status"></div>
+    </div>
+  </div>
+
+  <!-- TIC TAC TOE -->
+  <div id="section-ttt" class="section">
+    <div class="card">
+      <div class="card-title">&#x2B1C; Tic Tac Toe</div>
+      <div class="mode-row">
+        <button class="mode-btn active" id="ttt-vs-cpu" data-mode="cpu">&#x1F916; vs Computer</button>
+        <button class="mode-btn" id="ttt-vs-p2" data-mode="human">&#x1F46B; vs Friend</button>
+      </div>
+      <div class="ttt-scores">
+        <div class="ttt-box"><div class="bname">You (&#x2715;)</div><div class="bval" id="ttt-score-x" style="color:var(--blue)">0</div></div>
+        <div class="ttt-box"><div class="bname">Draws</div><div class="bval" id="ttt-score-d" style="color:var(--text-dim)">0</div></div>
+        <div class="ttt-box"><div class="bname" id="ttt-o-label">Computer (&#x25CB;)</div><div class="bval" id="ttt-score-o" style="color:var(--coral)">0</div></div>
+      </div>
+      <div class="status-msg" id="ttt-status" style="color:var(--navy)">Your turn! (&#x2715;)</div>
+      <div class="ttt-board" id="ttt-board"></div>
+      <div class="ctrl-row center" style="margin-top:12px">
+        <button class="btn btn-outline btn-sm" id="ttt-reset-btn">&#x1F504; New Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HANGMAN -->
+  <div id="section-hangman" class="section">
+    <div class="card">
+      <div class="card-title">&#x1FA90; Space Hangman</div>
+      <div class="mode-row">
+        <button class="mode-btn active" id="hm-vs-cpu" data-mode="cpu">&#x1F916; vs Computer</button>
+        <button class="mode-btn" id="hm-vs-p2" data-mode="human">&#x1F46B; vs Friend</button>
+      </div>
+      <div id="hm-entry-panel" style="display:none;text-align:center;padding:10px 0">
+        <p style="color:var(--text-dim);margin-bottom:10px;font-size:0.9rem">Player 2: type a secret word for Player 1 to guess!</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <input type="password" id="hm-custom-word" placeholder="Secret word..." maxlength="15" autocomplete="off"
+            style="background:var(--bg2);border:2px solid var(--border2);border-radius:10px;color:var(--navy);font-family:Nunito,sans-serif;font-size:1rem;font-weight:700;padding:10px 16px;outline:none;min-width:160px;">
+          <button class="btn btn-navy btn-sm" id="hm-start-btn">&#x1F680; Start!</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:0 0 auto">
+          <svg id="hangman-svg" width="155" height="175" viewBox="0 0 155 175">
+            <line x1="18" y1="168" x2="138" y2="168" stroke="#dde3ff" stroke-width="4" stroke-linecap="round"/>
+            <line x1="48" y1="168" x2="48" y2="10" stroke="#dde3ff" stroke-width="4" stroke-linecap="round"/>
+            <line x1="48" y1="10" x2="108" y2="10" stroke="#dde3ff" stroke-width="4" stroke-linecap="round"/>
+            <line x1="108" y1="10" x2="108" y2="33" stroke="#dde3ff" stroke-width="3" stroke-linecap="round"/>
+            <circle id="hm-head" cx="108" cy="44" r="11" fill="none" stroke="#2f6de0" stroke-width="3" opacity="0"/>
+            <line id="hm-body" x1="108" y1="55" x2="108" y2="103" stroke="#2f6de0" stroke-width="3" stroke-linecap="round" opacity="0"/>
+            <line id="hm-arm-l" x1="108" y1="70" x2="87" y2="88" stroke="#2f6de0" stroke-width="3" stroke-linecap="round" opacity="0"/>
+            <line id="hm-arm-r" x1="108" y1="70" x2="129" y2="88" stroke="#2f6de0" stroke-width="3" stroke-linecap="round" opacity="0"/>
+            <line id="hm-leg-l" x1="108" y1="103" x2="87" y2="128" stroke="#2f6de0" stroke-width="3" stroke-linecap="round" opacity="0"/>
+            <line id="hm-leg-r" x1="108" y1="103" x2="129" y2="128" stroke="#2f6de0" stroke-width="3" stroke-linecap="round" opacity="0"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div id="hm-hint" style="font-size:0.82rem;color:var(--text-dim);margin-bottom:8px"></div>
+          <div class="word-display" id="hm-word"></div>
+          <div style="font-size:0.85rem;color:var(--text-mid);margin:8px 0">Wrong guesses: <span id="hm-wrong-count" style="color:var(--red);font-weight:800">0</span>/6</div>
+          <div class="alpha-grid" id="hm-alpha"></div>
+        </div>
+      </div>
+      <div class="status-msg" id="hm-status" style="color:var(--navy)">Guess a letter!</div>
+      <div class="ctrl-row center">
+        <button class="btn btn-outline btn-sm" id="hm-new-btn">&#x1F504; New Word</button>
+        <span style="font-size:0.82rem;color:var(--text-dim)">Wins: <span id="hm-wins" style="color:var(--green);font-weight:800">0</span> | Losses: <span id="hm-losses" style="color:var(--red);font-weight:800">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPELLING: ROBOT REPAIR -->
+  <div id="section-spelling" class="section">
+    <div class="card">
+      <div class="card-title">&#x1F916; Robot Repair Workshop</div>
+      <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">
+        Bolt the robot speaks in broken words! Type each sound you hear into its box to repair his speech.
+        Get points for every correct sound — even partial spellings score!
+      </p>
+      <div class="cat-tabs" id="spell-cats">
+        <button class="cat-tab active" data-scat="cvc">&#x1F535; Simple Words</button>
+        <button class="cat-tab" data-scat="blend">&#x1F7E1; Blends</button>
+        <button class="cat-tab" data-scat="vowelteam">&#x1F7E3; Vowel Teams</button>
+        <button class="cat-tab" data-scat="heart">&#x2764;&#xFE0F; Heart Words</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill" id="spell-progress" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:12px">
+        <span id="spell-q-count">Word 1/10</span>
+        <span id="spell-score-inline">Sound Points: 0</span>
+      </div>
+
+      <!-- Robot character -->
+      <div style="text-align:center;margin-bottom:16px">
+        <div id="robot-face" style="font-size:3.5rem;transition:all .3s;display:inline-block">&#x1F916;</div>
+        <div id="robot-speech" class="robot-bubble"></div>
+      </div>
+
+      <!-- Word image + audio cue -->
+      <div id="spell-word-prompt" style="text-align:center;margin-bottom:16px"></div>
+
+      <!-- Sound boxes -->
+      <div id="spell-boxes-area" style="margin-bottom:14px"></div>
+
+      <!-- Check button -->
+      <div style="text-align:center;margin-bottom:10px">
+        <button class="btn btn-navy btn-sm" id="spell-check-btn" style="display:none">&#x1F527; Check Repair!</button>
+        <button class="btn btn-teal btn-sm" id="spell-next-btn" style="display:none">&#x27A1;&#xFE0F; Next Word</button>
+      </div>
+
+      <!-- Feedback area -->
+      <div id="spell-feedback" style="min-height:60px"></div>
+
+      <!-- Score breakdown -->
+      <div id="spell-scores" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+        <div class="ttt-box"><div class="bname">&#x1F50A; Sound Points</div><div class="bval" id="sp-sound" style="color:var(--blue)">0</div></div>
+        <div class="ttt-box"><div class="bname">&#x1F527; Repair Bonus</div><div class="bval" id="sp-repair" style="color:var(--teal)">0</div></div>
+        <div class="ttt-box"><div class="bname">&#x2B50; Total Stars</div><div class="bval" id="sp-total" style="color:var(--amber)">0</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+// ── GLOBAL STATE ──
+var totalStars=0,level=1,streak=0,mathStars=0,wordStars=0,readStars=0,sciStars=0;
+var LEVEL_T=[0,10,25,50,80,120];
+var PLANETS=['Earth','Moon','Asteroid Belt','Mars','Saturn','Starfield'];
+
+function addStars(n,subj){
+  totalStars+=n;streak++;
+  if(subj==='math')mathStars+=n;
+  else if(subj==='words')wordStars+=n;
+  else if(subj==='reading')readStars+=n;
+  else if(subj==='science')sciStars+=n;
+  while(level<LEVEL_T.length-1&&totalStars>=LEVEL_T[level]){level++;toast('Level Up! Arrived at '+PLANETS[level-1]+'!',2500);}
+  updateHUD();
+}
+function wrongAnswer(){streak=0;updateHUD();}
+function updateHUD(){
+  el('total-stars').textContent=totalStars;
+  el('level-display').textContent=level;
+  el('streak-display').textContent=streak;
+  el('hs-math').textContent=mathStars;
+  el('hs-words').textContent=wordStars;
+  el('hs-reading').textContent=readStars;
+  el('hs-science').textContent=sciStars;
+  renderPlanetProgress();
+}
+function renderPlanetProgress(){
+  var nxt=LEVEL_T[Math.min(level,LEVEL_T.length-1)];
+  var prv=LEVEL_T[level-1]||0;
+  var pct=nxt>prv?Math.round((totalStars-prv)/(nxt-prv)*100):100;
+  var e=el('planet-progress');
+  if(!e)return;
+  e.innerHTML='<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:4px"><span>'+PLANETS[level-1]+'</span><span>'+totalStars+'/'+nxt+' stars to '+PLANETS[Math.min(level,5)]+'</span></div><div class="progress-wrap"><div class="progress-fill" style="width:'+Math.min(pct,100)+'%"></div></div><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+PLANETS.map(function(p,i){return '<span style="font-size:0.85rem;opacity:'+(i<level?1:0.3)+'">'+p+'</span>';}).join('')+'</div>';
+}
+
+// ── NAV ──
+function showSection(id){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('visible');});
+  var sec=el('section-'+id);if(sec)sec.classList.add('visible');
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  var nb=el('nav-'+id);if(nb)nb.classList.add('active');
+  if(id==='math')initMath();
+  if(id==='words')initWords();
+  if(id==='reading')initReading();
+  if(id==='science')initScience();
+  if(id==='ttt')initTTT();
+  if(id==='hangman')initHangman();
+  updateHUD();
+}
+document.getElementById('nav').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-sec]');if(btn)showSection(btn.dataset.sec);
+});
+document.getElementById('section-home').addEventListener('click',function(e){
+  var card=e.target.closest('.game-card[data-sec]');if(card)showSection(card.dataset.sec);
+});
+
+// ── TOAST ──
+var toastTimer;
+function toast(msg,dur){
+  dur=dur||1700;
+  var t=el('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},dur);
+}
+
+// ── HELPERS ──
+function shuffle(a){return a.slice().sort(function(){return Math.random()-.5;});}
+function el(id){return document.getElementById(id);}
+
+// Make a shuffled queue of indices for no-repeat question cycling
+// Returns a new shuffled array of 0..n-1 indices
+function makeQueue(n){
+  var arr=[];for(var i=0;i<n;i++)arr.push(i);
+  return shuffle(arr);
+}
+
+// For dynamic math: generate a pool of 15 unique problems and pull from it in order
+function genUniquePool(genFn, count, cat){
+  var pool=[];var attempts=0;var seen={};
+  while(pool.length<count&&attempts<200){
+    attempts++;
+    var q=genFn(cat);
+    var key=q.q;
+    if(!seen[key]){seen[key]=true;pool.push(q);}
+  }
+  return pool;
+}
+
+// ═══════════════════════════════════════════
+//  MATH
+// ═══════════════════════════════════════════
+var SHAPES_QS=[
+  {q:'How many sides does a triangle have?',answer:'3',choices:['2','3','4','5']},
+  {q:'How many corners does a square have?',answer:'4',choices:['2','3','4','6']},
+  {q:'Which shape has NO corners?',answer:'circle',choices:['triangle','circle','square','pentagon']},
+  {q:'How many sides does a pentagon have?',answer:'5',choices:['4','5','6','7']},
+  {q:'A shape with 6 sides is called a...',answer:'hexagon',choices:['pentagon','hexagon','octagon','triangle']},
+  {q:'How many sides does an octagon have?',answer:'8',choices:['6','7','8','9']},
+  {q:'Which shape looks like a round ball when flat?',answer:'circle',choices:['circle','square','triangle','rectangle']},
+  {q:'A rectangle has how many sides?',answer:'4',choices:['3','4','5','6']},
+  {q:'Which shape has 3 corners?',answer:'triangle',choices:['triangle','square','hexagon','circle']},
+  {q:'A stop sign has 8 sides. What shape is it?',answer:'octagon',choices:['hexagon','octagon','pentagon','heptagon']}
+];
+var PATTERN_QS=[
+  {q:'What comes next? 2, 4, 6, 8, ___',answer:'10',choices:['9','10','11','12']},
+  {q:'What comes next? 5, 10, 15, 20, ___',answer:'25',choices:['22','24','25','30']},
+  {q:'What comes next? 1, 3, 5, 7, ___',answer:'9',choices:['8','9','10','11']},
+  {q:'What comes next? 10, 20, 30, 40, ___',answer:'50',choices:['45','50','55','60']},
+  {q:'What comes next? 3, 6, 9, 12, ___',answer:'15',choices:['13','14','15','16']},
+  {q:'What comes next? 100, 200, 300, 400, ___',answer:'500',choices:['400','450','500','600']},
+  {q:'What comes next? 50, 100, 150, 200, ___',answer:'250',choices:['220','240','250','300']},
+  {q:'What comes next? 4, 8, 12, 16, ___',answer:'20',choices:['18','19','20','24']},
+  {q:'What comes next? 7, 14, 21, 28, ___',answer:'35',choices:['30','33','35','42']},
+  {q:'What comes next? 25, 50, 75, 100, ___',answer:'125',choices:['110','115','125','150']}
+];
+
+var mathCat='add',mathQ=0,mathScore=0,mathAnswered=false;
+var mathPool=[],mathPoolIdx=0;
+
+el('math-cats').addEventListener('click',function(e){
+  var t=e.target.closest('[data-cat]');if(!t)return;
+  mathCat=t.dataset.cat;mathQ=0;mathScore=0;mathAnswered=false;
+  document.querySelectorAll('#math-cats .cat-tab').forEach(function(b){b.classList.toggle('active',b.dataset.cat===mathCat);});
+  initMath();
+});
+
+function genOneMathQ(cat){
+  if(cat==='add'){
+    var max=level<=1?10:level<=2?20:100;
+    var op=Math.random()<0.6?'+':'-';
+    var a=Math.floor(Math.random()*max)+1;
+    var b=Math.floor(Math.random()*(max/2))+1;
+    if(op==='-'&&b>a){var tmp=a;a=b;b=tmp;}
+    var ans=op==='+'?a+b:a-b;
+    var wrongs=[];var tries=0;
+    while(wrongs.length<3&&tries<30){tries++;var w=ans+(Math.floor(Math.random()*6)-3);if(w!==ans&&w>=0&&wrongs.indexOf(w)<0)wrongs.push(w);}
+    return {q:a+' '+op+' '+b+' = ?',answer:String(ans),choices:shuffle([String(ans)].concat(wrongs.map(String)))};
+  }
+  if(cat==='multiply'){
+    // Grade 1-2 appropriate: times tables 1-5
+    var a=Math.floor(Math.random()*5)+1;
+    var b=Math.floor(Math.random()*5)+1;
+    var ans=a*b;
+    var wrongs=[];var tries=0;
+    while(wrongs.length<3&&tries<30){tries++;var w=ans+(Math.floor(Math.random()*6)-3);if(w!==ans&&w>0&&wrongs.indexOf(w)<0)wrongs.push(w);}
+    return {q:a+' x '+b+' = ?',answer:String(ans),choices:shuffle([String(ans)].concat(wrongs.map(String)))};
+  }
+  if(cat==='place'){
+    var num=Math.floor(Math.random()*90)+10;
+    var tens=Math.floor(num/10),ones=num%10;
+    if(Math.random()<0.5){
+      var wrongs=[];var t=0;while(wrongs.length<3&&t<30){t++;var w=tens+(Math.floor(Math.random()*4)-2);if(w!==tens&&w>0&&w<=9&&wrongs.indexOf(w)<0)wrongs.push(w);}
+      return {q:'What is the TENS digit in '+num+'?',answer:String(tens),choices:shuffle([String(tens)].concat(wrongs.map(String)))};
+    }
+    var wrongs=[];var t=0;while(wrongs.length<3&&t<30){t++;var w=num+(Math.floor(Math.random()*10)-5);if(w!==num&&w>0&&w<=99&&wrongs.indexOf(w)<0)wrongs.push(w);}
+    return {q:tens+' tens and '+ones+' ones = ?',answer:String(num),choices:shuffle([String(num)].concat(wrongs.map(String)))};
+  }
+  if(cat==='shape'){var q=SHAPES_QS[Math.floor(Math.random()*SHAPES_QS.length)];return {q:q.q,answer:q.answer,choices:shuffle(q.choices.slice())};}
+  var q=PATTERN_QS[Math.floor(Math.random()*PATTERN_QS.length)];return {q:q.q,answer:q.answer,choices:shuffle(q.choices.slice())};
+}
+
+function initMath(){
+  mathAnswered=false;
+  mathPool=genUniquePool(genOneMathQ,15,mathCat);
+  mathPoolIdx=0;
+  loadMathQ();
+}
+
+function loadMathQ(){
+  mathAnswered=false;
+  if(mathPoolIdx>=mathPool.length){
+    // Refill pool
+    mathPool=genUniquePool(genOneMathQ,15,mathCat);
+    mathPoolIdx=0;
+  }
+  var q=mathPool[mathPoolIdx];
+  el('math-progress').style.width=Math.min(Math.round(mathQ/10*100),100)+'%';
+  el('math-q-count').textContent='Question '+(mathQ%10+1)+'/10';
+  el('math-score-inline').textContent='Stars: '+mathScore;
+  el('math-status').textContent='';
+  var html='<div class="math-eq">'+q.q+'</div><div class="choice-grid">';
+  q.choices.forEach(function(c){html+='<button class="choice-btn" data-val="'+c+'" data-ans="'+q.answer+'">'+c+'</button>';});
+  html+='</div>';
+  el('math-problem-area').innerHTML=html;
+}
+
+el('math-problem-area').addEventListener('click',function(e){
+  var btn=e.target.closest('.choice-btn');if(!btn||mathAnswered)return;
+  mathAnswered=true;
+  var correct=btn.dataset.val===btn.dataset.ans;
+  if(correct){
+    btn.classList.add('correct');
+    var pts=streak>2?2:1;mathScore+=pts;mathQ++;mathPoolIdx++;
+    addStars(pts,'math');
+    el('math-status').textContent=streak>2?'Streak! +'+pts+' stars!':'Correct!';
+    toast('+'+pts+' star'+(pts>1?'s':'')+'!');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#math-problem-area .choice-btn').forEach(function(b){if(b.dataset.val===btn.dataset.ans)b.classList.add('correct');});
+    wrongAnswer();el('math-status').textContent='The answer was '+btn.dataset.ans+'.';mathQ++;mathPoolIdx++;
+  }
+  setTimeout(function(){mathAnswered=false;loadMathQ();},1350);
+});
+
+// ═══════════════════════════════════════════
+//  WORDS
+// ═══════════════════════════════════════════
+var PHONICS_QS=[
+  {q:'Which word has a long "a" sound?',answer:'cake',choices:['cat','cake','cap','can']},
+  {q:'Which word rhymes with "night"?',answer:'light',choices:['light','net','cap','dog']},
+  {q:'Pick the word with a "silent e":',answer:'bike',choices:['bit','bike','big','bin']},
+  {q:'Which word has the "ow" sound as in "snow"?',answer:'grow',choices:['grow','grab','grin','grim']},
+  {q:'Which word starts with "ph" (sounds like "f")?',answer:'phone',choices:['pond','phone','pine','pan']},
+  {q:'Which word has a short "i" sound?',answer:'ship',choices:['shine','ship','sheep','shop']},
+  {q:'Pick the correctly spelled word:',answer:'friend',choices:['freind','friend','frend','fri-end']},
+  {q:'Which word rhymes with "cat"?',answer:'hat',choices:['hit','hot','hat','hut']},
+  {q:'Which word has a long "o" sound?',answer:'bone',choices:['bone','bond','bob','box']},
+  {q:'Which word has the "ea" vowel team sound?',answer:'beach',choices:['beach','beck','back','buck']}
+];
+var VOCAB_QS=[
+  {q:'What does "enormous" mean?',answer:'very big',choices:['tiny','very big','fast','quiet']},
+  {q:'What does "observe" mean?',answer:'watch carefully',choices:['watch carefully','run fast','eat quickly','jump high']},
+  {q:'What does "rapid" mean?',answer:'very fast',choices:['very fast','very slow','very loud','very small']},
+  {q:'What does "transparent" mean?',answer:'see-through',choices:['see-through','very dark','very soft','very sharp']},
+  {q:'What does "organize" mean?',answer:'put things in order',choices:['put things in order','make a mess','run away','fall asleep']},
+  {q:'What does "caution" mean?',answer:'be careful',choices:['be careful','go fast','be loud','be silly']},
+  {q:'What does "estimate" mean?',answer:'make a smart guess',choices:['make a smart guess','count exactly','run around','eat lunch']},
+  {q:'What does "drowsy" mean?',answer:'sleepy',choices:['sleepy','angry','hungry','scared']},
+  {q:'What does "pale" mean?',answer:'light in color',choices:['light in color','very dark','very fast','very loud']},
+  {q:'What does "solution" mean?',answer:'the answer to a problem',choices:['the answer to a problem','a kind of soup','a type of game','a place to sit']}
+];
+var HINKPINK_QS=[
+  {q:'A happy father — which rhyming pair fits?',answer:'glad dad',choices:['glad dad','sad dad','mad lad','rad dad'],hint:'Two short words that rhyme!'},
+  {q:'A word rhyming with "moon" that means a song:',answer:'tune',choices:['tune','spoon','soon','noon'],hint:'Think music!'},
+  {q:'A word rhyming with "star" that is a vehicle:',answer:'car',choices:['car','jar','bar','far'],hint:'You drive it!'},
+  {q:'A rhyming name for a chilly pond?',answer:'cool pool',choices:['cool pool','cold pond','icy lake','warm pond'],hint:'Two rhyming words!'},
+  {q:'A "fat cat" rhyming answer:',answer:'round hound',choices:['round hound','big pig','chubby tabby','heavy kitty'],hint:'Dog + a word meaning wide!'},
+  {q:'A sleepy insect — rhyming pair:',answer:'drowsy bee',choices:['drowsy bee','tired ant','lazy fly','sleepy bug'],hint:'Rhymes with "lousy free"!'},
+  {q:'A rhyme for a scared feline:',answer:'frightened kitten',choices:['frightened kitten','scared cat','nervous pet','worried animal'],hint:'Baby cat + a rhyming word!'}
+];
+var wordCat='phonics',wordQ=0,wordScore=0,wordAnswered=false;
+var wordPool=[],wordPoolIdx=0;
+
+el('word-cats').addEventListener('click',function(e){
+  var t=e.target.closest('[data-cat]');if(!t)return;
+  wordCat=t.dataset.cat;wordQ=0;wordScore=0;wordAnswered=false;
+  document.querySelectorAll('#word-cats .cat-tab').forEach(function(b){b.classList.toggle('active',b.dataset.cat===wordCat);});
+  initWords();
+});
+
+function initWords(){
+  var qs=wordCat==='phonics'?PHONICS_QS:wordCat==='vocab'?VOCAB_QS:HINKPINK_QS;
+  var indices=makeQueue(qs.length);
+  wordPool=indices.map(function(i){return qs[i];});
+  wordPoolIdx=0;
+  loadWordQ();
+}
+
+function loadWordQ(){
+  wordAnswered=false;
+  if(wordPoolIdx>=wordPool.length){
+    var qs=wordCat==='phonics'?PHONICS_QS:wordCat==='vocab'?VOCAB_QS:HINKPINK_QS;
+    var indices=makeQueue(qs.length);wordPool=indices.map(function(i){return qs[i];});wordPoolIdx=0;
+  }
+  var q=wordPool[wordPoolIdx];
+  el('word-progress').style.width=Math.min(Math.round(wordQ/10*100),100)+'%';
+  el('word-q-count').textContent='Question '+(wordQ%10+1)+'/10';
+  el('word-score-inline').textContent='Stars: '+wordScore;
+  el('word-status').textContent='';
+  var hint=q.hint?'<p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px"> '+q.hint+'</p>':'';
+  var html='<div class="clue-box">'+hint+'<strong>'+q.q+'</strong></div><div class="choice-grid">';
+  shuffle(q.choices).forEach(function(c){html+='<button class="choice-btn" data-val="'+c+'" data-ans="'+q.answer+'" style="font-size:1rem;padding:14px 8px">'+c+'</button>';});
+  html+='</div>';
+  el('word-problem-area').innerHTML=html;
+}
+
+el('word-problem-area').addEventListener('click',function(e){
+  var btn=e.target.closest('.choice-btn');if(!btn||wordAnswered)return;
+  wordAnswered=true;
+  var correct=btn.dataset.val===btn.dataset.ans;
+  if(correct){
+    btn.classList.add('correct');
+    var pts=streak>2?2:1;wordScore+=pts;wordQ++;wordPoolIdx++;
+    addStars(pts,'words');el('word-status').textContent='Great word choice!';toast('+'+pts+' star'+(pts>1?'s':'')+'!');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#word-problem-area .choice-btn').forEach(function(b){if(b.dataset.val===btn.dataset.ans)b.classList.add('correct');});
+    wrongAnswer();el('word-status').textContent='The answer was "'+btn.dataset.ans+'".';wordQ++;wordPoolIdx++;
+  }
+  setTimeout(function(){wordAnswered=false;loadWordQ();},1350);
+});
+
+// ═══════════════════════════════════════════
+//  SCIENCE  (with explanations)
+// ═══════════════════════════════════════════
+var SCI_QS={
+  physics:[
+    {q:'How do we make sound?',answer:'vibration',choices:['vibration','freezing','melting','gravity'],
+     explain:'Sound is made when something vibrates (shakes back and forth very fast). Those vibrations travel through the air to your ears!',
+     wrong:{freezing:'Freezing makes things solid — it has nothing to do with sound.',melting:'Melting turns solids to liquids — that does not make sound.',gravity:'Gravity pulls things down, but it does not create sound.'}},
+    {q:'What do we need to SEE an object?',answer:'light',choices:['light','sound','water','wind'],
+     explain:'Our eyes can only see objects when light bounces off them and reaches our eyes. In total darkness there is nothing to reflect, so we cannot see anything!',
+     wrong:{sound:'Sound lets us HEAR things, not see them.',water:'Water helps us drink and wash, but we do not need water to see.',wind:'Wind moves air around but does not help us see.'}},
+    {q:'Which material lets MOST light through?',answer:'glass',choices:['glass','wood','metal','rock'],
+     explain:'Glass is transparent, which means light can pass right through it. That is why windows are made of glass — you can see outside!',
+     wrong:{wood:'Wood is opaque — light cannot pass through it at all.',metal:'Metal blocks all light.',rock:'Rock is solid and blocks light completely.'}},
+    {q:'Sound travels as...?',answer:'waves',choices:['waves','bubbles','squares','drops'],
+     explain:'Sound travels as invisible waves, similar to ripples on a pond. These waves push air particles back and forth until they reach your ears.',
+     wrong:{bubbles:'Bubbles are pockets of air in liquid — sound does not travel as bubbles.',squares:'Squares are a shape. Energy travels as waves, not shapes.',drops:'Drops are liquid. Sound energy travels as waves through air.'}},
+    {q:'What happens to a shadow when you move closer to the light?',answer:'it gets bigger',choices:['it gets bigger','it disappears','it gets smaller','it turns blue'],
+     explain:'When you move closer to the light source, your body blocks more of the light beam at a wider angle, making a bigger shadow on the wall.',
+     wrong:{'it disappears':'Moving closer does not remove the shadow — it makes it bigger!','it gets smaller':'Actually the opposite happens — the shadow gets bigger as you move closer.','it turns blue':'Shadows do not change color based on distance.'}},
+    {q:'Which of these makes its own light?',answer:'the Sun',choices:['the Sun','the Moon','a mirror','a rock'],
+     explain:'The Sun is a star that creates its own light through nuclear reactions. The Moon, mirrors, and rocks only reflect light from the Sun.',
+     wrong:{'the Moon':'The Moon does not make its own light — it reflects sunlight!','a mirror':'A mirror only bounces (reflects) light that shines on it.','a rock':'Rocks do not produce light.'}},
+    {q:'What is the PITCH of a sound?',answer:'how high or low it sounds',choices:['how high or low it sounds','how loud or soft it is','how fast it travels','what color it makes'],
+     explain:'Pitch describes whether a sound is high (like a whistle) or low (like a drum). Fast vibrations make high-pitched sounds; slow vibrations make low-pitched sounds.',
+     wrong:{'how loud or soft it is':'That describes VOLUME or loudness, not pitch.','how fast it travels':'The speed of sound is different from its pitch.','what color it makes':'Sound does not make colors!'}}
+  ],
+  life:[
+    {q:'A baby cat is called a...',answer:'kitten',choices:['kitten','puppy','calf','foal'],
+     explain:'A baby cat is a kitten! Baby dogs are puppies, baby cows are calves, and baby horses are foals.',
+     wrong:{puppy:'A puppy is a baby dog, not a cat.',calf:'A calf is a baby cow.',foal:'A foal is a baby horse.'}},
+    {q:'Young animals look... their parents.',answer:'similar to',choices:['exactly like','nothing like','similar to','opposite to'],
+     explain:'Young animals look SIMILAR to their parents but not exactly the same. A kitten has the same basic features as a cat, but smaller and sometimes different coloring.',
+     wrong:{'exactly like':'Young animals resemble their parents but are not identical copies.','nothing like':'Young animals share many traits with their parents.','opposite to':'Young animals do not look opposite — they share family traits.'}},
+    {q:'What do plants need to grow?',answer:'sunlight, water, and soil',choices:['sunlight, water, and soil','only water','only sunlight','only soil'],
+     explain:'Plants need all three: sunlight for energy (photosynthesis), water to carry nutrients, and soil for minerals and support.',
+     wrong:{'only water':'Water alone is not enough — plants also need light and nutrients from soil.','only sunlight':'Without water and soil nutrients, a plant cannot survive on light alone.','only soil':'Soil without water and light would not support plant growth.'}},
+    {q:'Which part of a plant makes food from sunlight?',answer:'leaf',choices:['leaf','root','stem','flower'],
+     explain:'Leaves contain chlorophyll (the green pigment) which captures sunlight and uses it to turn water and carbon dioxide into food — this is called photosynthesis!',
+     wrong:{root:'Roots absorb water and nutrients from the soil, but they do not make food.',stem:'The stem carries water and food around the plant but does not make food.',flower:'Flowers help with reproduction, not making food from sunlight.'}},
+    {q:'A tadpole grows into a...',answer:'frog',choices:['frog','fish','bird','turtle'],
+     explain:'Tadpoles are baby frogs! They start with gills and a tail, then grow legs and lungs as they become adult frogs. This change is called metamorphosis.',
+     wrong:{fish:'Fish stay as fish — they do not come from tadpoles.',bird:'Birds hatch from eggs and do not go through a tadpole stage.',turtle:'Turtles also hatch from eggs but are not related to tadpoles.'}},
+    {q:'What is the job of roots in a plant?',answer:'absorb water and hold the plant in soil',choices:['absorb water and hold the plant in soil','make food from sunlight','produce flowers','carry seeds'],
+     explain:'Roots have two main jobs: they soak up water and minerals from the soil, and they anchor the plant so it does not fall over.',
+     wrong:{'make food from sunlight':'That is the job of leaves, not roots.','produce flowers':'Flowers grow from stems and buds, not from roots.','carry seeds':'Seeds are produced by flowers, not by roots.'}},
+    {q:'Which animal lays eggs?',answer:'eagle',choices:['eagle','dog','cat','rabbit'],
+     explain:'Eagles (and all birds) lay eggs. Dogs, cats, and rabbits are mammals — they give birth to live babies instead of laying eggs.',
+     wrong:{dog:'Dogs are mammals and give birth to live puppies.',cat:'Cats are mammals and give birth to live kittens.',rabbit:'Rabbits are mammals and give birth to live babies called kits.'}}
+  ],
+  engineering:[
+    {q:'Which shape makes the STRONGEST bridge support?',answer:'triangle',choices:['triangle','circle','square','line'],
+     explain:'Triangles are the strongest shape in engineering! When force pushes on a triangle, the pressure spreads evenly across all three sides. That is why bridges and towers use lots of triangles.',
+     wrong:{circle:'Circles are strong for containing pressure (like a pipe) but not for building frameworks.',square:'Squares can be pushed into a diamond shape and collapse. They need extra diagonal supports (triangles!).',line:'A single line has no structural support — it bends easily.'}},
+    {q:'What does an engineer do?',answer:'solves problems by designing things',choices:['solves problems by designing things','only paints pictures','only counts numbers','only reads books'],
+     explain:'Engineers use science and math to design solutions to real problems — like building bridges, creating apps, or designing water systems.',
+     wrong:{'only paints pictures':'That describes an artist, not an engineer.','only counts numbers':'Engineers do use math, but their main job is designing solutions to problems.','only reads books':'Reading is part of learning, but engineers apply knowledge to solve real problems.'}},
+    {q:'Water and wind changing the shape of land is called...',answer:'erosion',choices:['erosion','invention','rotation','confusion'],
+     explain:'Erosion happens when water, wind, or ice slowly wears away rock and soil and carries it somewhere else. Over millions of years, erosion can carve canyons!',
+     wrong:{invention:'An invention is something new that is created, not a natural process.',rotation:'Rotation means spinning in a circle.',confusion:'Confusion is a feeling of being mixed up, not a geological process.'}},
+    {q:'Step-by-step instructions in coding are called a(n)...',answer:'algorithm',choices:['algorithm','allergy','alphabet','almanac'],
+     explain:'An algorithm is a set of step-by-step instructions that tells a computer (or a person) exactly what to do to solve a problem. Every program is built from algorithms!',
+     wrong:{allergy:'An allergy is a reaction to something like pollen or peanuts — nothing to do with computers.',alphabet:'The alphabet is a set of letters — not instructions.',almanac:'An almanac is a book of facts and information, not a coding term.'}},
+    {q:'When your code does not work, you...',answer:'debug it',choices:['debug it','throw it away','start crying','ignore it'],
+     explain:'Debugging means finding and fixing errors (called "bugs") in your code. Great programmers think of bugs as puzzles to solve — every mistake teaches you something!',
+     wrong:{'throw it away':'Throwing it away means you lose all your work and learn nothing from the mistake.','start crying':'Mistakes are normal in coding! The best thing to do is look for the problem and fix it.','ignore it':'Ignoring errors means your program will keep not working.'}},
+    {q:'What makes a structure MORE stable?',answer:'a wide base',choices:['a wide base','a pointy bottom','very tall and thin','soft materials'],
+     explain:'A wide base lowers the center of gravity and spreads weight evenly, making structures much harder to tip over. Think of how a pyramid is very stable!',
+     wrong:{'a pointy bottom':'A pointy bottom has almost no contact with the ground and tips over easily.','very tall and thin':'Tall thin structures have a high center of gravity and fall easily.','soft materials':'Soft materials bend and cannot support heavy loads.'}}
+  ]
+};
+
+var sciCat='physics',sciQ=0,sciScore=0,sciAnswered=false;
+var sciPool=[],sciPoolIdx=0;
+
+el('sci-cats').addEventListener('click',function(e){
+  var t=e.target.closest('[data-cat]');if(!t)return;
+  sciCat=t.dataset.cat;sciQ=0;sciScore=0;sciAnswered=false;
+  document.querySelectorAll('#sci-cats .cat-tab').forEach(function(b){b.classList.toggle('active',b.dataset.cat===sciCat);});
+  initScience();
+});
+
+function initScience(){
+  var qs=SCI_QS[sciCat];
+  var indices=makeQueue(qs.length);
+  sciPool=indices.map(function(i){return qs[i];});
+  sciPoolIdx=0;
+  loadSciQ();
+}
+
+function loadSciQ(){
+  sciAnswered=false;
+  if(sciPoolIdx>=sciPool.length){
+    var qs=SCI_QS[sciCat];
+    var indices=makeQueue(qs.length);sciPool=indices.map(function(i){return qs[i];});sciPoolIdx=0;
+  }
+  var q=sciPool[sciPoolIdx];
+  el('sci-progress').style.width=Math.min(Math.round(sciQ/10*100),100)+'%';
+  el('sci-q-count').textContent='Question '+(sciQ%10+1)+'/10';
+  el('sci-score-inline').textContent='Stars: '+sciScore;
+  el('sci-status').textContent='';
+  var html='<div class="clue-box"><strong>'+q.q+'</strong></div><div class="choice-grid">';
+  shuffle(q.choices).forEach(function(c){
+    html+='<button class="choice-btn" data-val="'+c+'" data-ans="'+q.answer+'" data-explain="'+encodeURIComponent(q.explain||'')+'" data-wrong="'+encodeURIComponent(JSON.stringify(q.wrong||{}))+'" style="font-size:0.88rem;padding:14px 8px">'+c+'</button>';
+  });
+  html+='</div>';
+  el('sci-problem-area').innerHTML=html;
+}
+
+el('sci-problem-area').addEventListener('click',function(e){
+  var btn=e.target.closest('.choice-btn');if(!btn||sciAnswered)return;
+  sciAnswered=true;
+  var correct=btn.dataset.val===btn.dataset.ans;
+  var explain=decodeURIComponent(btn.dataset.explain||'');
+  var wrongMap={};
+  try{wrongMap=JSON.parse(decodeURIComponent(btn.dataset.wrong||'{}'));}catch(err){}
+
+  if(correct){
+    btn.classList.add('correct');
+    var pts=streak>2?2:1;sciScore+=pts;sciQ++;sciPoolIdx++;
+    addStars(pts,'science');
+    el('sci-status').textContent='';
+    // Show explanation below choices
+    var expHtml='<div class="sci-explain"><strong>Correct!</strong> '+explain+'</div>';
+    el('sci-problem-area').insertAdjacentHTML('beforeend',expHtml);
+    toast('+'+pts+' star'+(pts>1?'s':'')+'!');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#sci-problem-area .choice-btn').forEach(function(b){if(b.dataset.val===btn.dataset.ans)b.classList.add('correct');});
+    wrongAnswer();sciQ++;sciPoolIdx++;
+    // Show why chosen answer is wrong AND why correct answer is right
+    var whyWrong=wrongMap[btn.dataset.val]||'That is not quite right.';
+    var expHtml='<div class="sci-explain"><strong>Not this time!</strong> '+whyWrong+' The correct answer is <strong>"'+btn.dataset.ans+'"</strong> — '+explain+'</div>';
+    el('sci-problem-area').insertAdjacentHTML('beforeend',expHtml);
+  }
+  setTimeout(function(){sciAnswered=false;loadSciQ();},3500);
+});
+
+// ═══════════════════════════════════════════
+//  READING
+// ═══════════════════════════════════════════
+var STORIES=[
+  {id:'rocket',title:'Luna the Space Pilot',icon:'&#x1F680;',level:'Grade 1',
+   text:[
+     {s:'Luna put on her shiny space suit and climbed into her red rocket.',vocab:{}},
+     {s:'She pressed the big green button and heard a loud rumble.',vocab:{rumble:'a deep, low sound like thunder'}},
+     {s:'The rocket blasted off into the dark, quiet sky.',vocab:{blasted:'moved very fast with great force'}},
+     {s:'Luna looked out her window and saw a thousand glittering stars.',vocab:{glittering:'sparkling and shining with tiny flashes of light'}},
+     {s:'She flew past the orange and red planet Mars.',vocab:{}},
+     {s:'"This is amazing!" she said, doing a loop-the-loop in her rocket.',vocab:{}},
+     {s:'After exploring for a while, Luna turned her rocket toward home.',vocab:{exploring:'traveling to discover new places'}},
+     {s:'She landed safely in her backyard just in time for dinner.',vocab:{}}
+   ],
+   recall:[
+     {q:"What color was Luna's rocket?",answer:'red',choices:['blue','red','yellow','green']},
+     {q:"What did Luna see out of her window?",answer:'a thousand glittering stars',choices:['a thousand glittering stars','the Moon','another rocket','dark clouds']},
+     {q:"Which planet did Luna fly past?",answer:'Mars',choices:['Mars','Saturn','Jupiter','Venus']},
+     {q:"Where did Luna land at the end?",answer:'her backyard',choices:['her backyard','the Moon','a space station','a field']}
+   ],
+   vocabQ:[
+     {q:'In the story, "blasted off" means...',answer:'moved very fast with great force',choices:['moved very fast with great force','fell down slowly','turned in a circle','became very cold']},
+     {q:'What does "glittering stars" mean in the story?',answer:'sparkling, shiny stars',choices:['sparkling, shiny stars','very big stars','very fast stars','invisible stars']}
+   ],
+   order:['Luna put on her space suit and got in her rocket.','The rocket blasted off into the sky.','Luna flew past the planet Mars.','Luna landed safely in her backyard.'],
+   fills:[
+     {sentence:'Luna put on her shiny _____ and climbed into her rocket.',blank:'space suit',choices:['space suit','swimsuit','raincoat','backpack']},
+     {sentence:'She pressed the big _____ button.',blank:'green',choices:['green','red','blue','yellow']},
+     {sentence:'Luna flew past the orange and red planet _____.',blank:'Mars',choices:['Mars','Venus','Saturn','Earth']}
+   ]
+  },
+  {id:'frog',title:'The Tiny Frog',icon:'&#x1F438;',level:'Grade 1-2',
+   text:[
+     {s:'A tiny green frog sat on a lily pad in the pond.',vocab:{lily:'a water plant with flat floating leaves'}},
+     {s:'He wanted to cross to the other side, but the water looked deep.',vocab:{}},
+     {s:'The frog took a deep breath and leaped as far as he could.',vocab:{leaped:'jumped a long way through the air'}},
+     {s:'Splash! He landed on a rock in the middle of the pond.',vocab:{}},
+     {s:'"I can do it!" he croaked cheerfully, and leaped again.',vocab:{croaked:'made the rough sound a frog makes'}},
+     {s:'He leaped from rock to rock until he reached the other bank.',vocab:{bank:'the ground right next to a river or pond'}},
+     {s:'On the other side, he found a whole field of tasty flies.',vocab:{}},
+     {s:'"Sometimes you have to be brave to find something wonderful," he thought.',vocab:{brave:'willing to do something even when it is scary'}}
+   ],
+   recall:[
+     {q:'Where was the frog sitting at the start?',answer:'on a lily pad',choices:['on a lily pad','on a rock','in the mud','on a branch']},
+     {q:'What did the frog land on first when he jumped?',answer:'a rock in the middle',choices:['a rock in the middle','the other bank','a log','the mud']},
+     {q:'What did the frog find on the other side?',answer:'a field of tasty flies',choices:['a field of tasty flies','other frogs','a pond','a big tree']},
+     {q:'What is the lesson of this story?',answer:'Be brave to find wonderful things',choices:['Be brave to find wonderful things','Always stay home','Rocks are dangerous','Flies taste bad']}
+   ],
+   vocabQ:[
+     {q:'In the story, "leaped" means...',answer:'jumped a long way through the air',choices:['jumped a long way through the air','swam quickly','walked slowly','fell down']},
+     {q:'In this story, "bank" means...',answer:'ground next to a pond',choices:['ground next to a pond','a place to save money','a big table','a tall wall']}
+   ],
+   order:['The frog sat on a lily pad and wanted to cross.','He leaped onto a rock in the middle.','He leaped from rock to rock.','He found a field of tasty flies on the other side.'],
+   fills:[
+     {sentence:'A tiny green frog sat on a _____ in the pond.',blank:'lily pad',choices:['lily pad','big rock','log','leaf']},
+     {sentence:'He leaped from rock to rock until he reached the other _____.',blank:'bank',choices:['bank','side','pond','rock']},
+     {sentence:'"Sometimes you have to be _____ to find something wonderful."',blank:'brave',choices:['brave','fast','quiet','hungry']}
+   ]
+  },
+  {id:'rain',title:'What Makes Rain?',icon:'&#x1F327;&#xFE0F;',level:'Grade 2',
+   text:[
+     {s:'Have you ever wondered where rain comes from?',vocab:{}},
+     {s:'The sun warms the water in oceans, lakes, and rivers.',vocab:{}},
+     {s:'When water gets warm enough, it evaporates — it turns into invisible water vapor.',vocab:{evaporates:'turns from liquid into an invisible gas called water vapor'}},
+     {s:'The water vapor rises up, up, up into the cold sky.',vocab:{vapor:'tiny particles of water floating in the air as a gas'}},
+     {s:'Up high, the vapor cools down and forms tiny water droplets.',vocab:{droplets:'very tiny drops of water'}},
+     {s:'Millions of these droplets bunch together to make a cloud.',vocab:{}},
+     {s:'When the cloud gets very full and heavy, the water falls back down as rain!',vocab:{}},
+     {s:'The rain fills the rivers and oceans again — and the cycle starts all over.',vocab:{cycle:'a series of events that repeats again and again'}}
+   ],
+   recall:[
+     {q:'What does the sun do to water in lakes and oceans?',answer:'warms it up',choices:['warms it up','freezes it','makes it salty','makes it blue']},
+     {q:'What is evaporation?',answer:'water turning into invisible vapor',choices:['water turning into invisible vapor','rain falling down','clouds forming','rivers drying up']},
+     {q:'What forms when millions of water droplets bunch together?',answer:'a cloud',choices:['a cloud','a rainbow','fog','snow']},
+     {q:'What is the word for events that repeat again and again?',answer:'a cycle',choices:['a cycle','a pattern','a chain','a loop']}
+   ],
+   vocabQ:[
+     {q:'In this passage, "evaporates" means...',answer:'turns from liquid into invisible gas',choices:['turns from liquid into invisible gas','freezes into ice','falls as rain','becomes very dirty']},
+     {q:'"Droplets" in this text means...',answer:'tiny drops of water',choices:['tiny drops of water','big waves','pieces of ice','parts of a cloud']}
+   ],
+   order:['The sun warms water in oceans and lakes.','Water evaporates and rises as vapor.','The vapor cools and forms tiny droplets.','Droplets form a cloud, and rain falls down.'],
+   fills:[
+     {sentence:'When water gets warm enough, it _____ and turns into water vapor.',blank:'evaporates',choices:['evaporates','freezes','disappears','melts']},
+     {sentence:'Millions of tiny droplets bunch together to make a _____.',blank:'cloud',choices:['cloud','rainbow','wind','river']},
+     {sentence:'The _____ starts all over when rain fills the rivers again.',blank:'cycle',choices:['cycle','storm','wave','fall']}
+   ]
+  }
+];
+
+var currentStory=0,compTab='recall',fillSelections=[],sentClickCount=0,selectedFillWord=null;
+
+function initReading(){
+  var nav=el('story-nav');nav.innerHTML='';
+  STORIES.forEach(function(s,i){
+    var btn=document.createElement('button');
+    btn.className='story-pill'+(i===currentStory?' active':'');
+    btn.innerHTML=s.icon+' '+s.title;
+    btn.dataset.idx=String(i);
+    nav.appendChild(btn);
+  });
+  renderStory();
+}
+el('story-nav').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-idx]');if(!btn)return;
+  currentStory=parseInt(btn.dataset.idx);
+  document.querySelectorAll('.story-pill').forEach(function(b){b.classList.toggle('active',b.dataset.idx===btn.dataset.idx);});
+  renderStory();
+});
+function renderStory(){
+  var s=STORIES[currentStory];
+  var storyParts='';
+  s.text.forEach(function(line){
+    var txt=line.s;
+    Object.keys(line.vocab).forEach(function(word){
+      var re=new RegExp('\\b'+word+'\\b','i');
+      txt=txt.replace(re,function(m){return '<span class="hw" data-word="'+word+'" data-def="'+line.vocab[word]+'">'+m+'</span>';});
+    });
+    storyParts+=txt+' ';
+  });
+  el('story-display').innerHTML='<div class="story-panel"><div class="story-header"><div class="story-icon">'+s.icon+'</div><div><div class="story-title">'+s.title+'</div><div class="story-level">'+s.level+'</div></div></div><div class="story-body">'+storyParts+'</div><div id="word-def-area"></div><button class="btn btn-coral btn-sm" id="show-qs-btn">Answer Questions</button></div>';
+  el('reading-questions').style.display='none';
+  el('reading-status').textContent='';
+}
+el('story-display').addEventListener('click',function(e){
+  var hw=e.target.closest('.hw');
+  if(hw){el('word-def-area').innerHTML='<div class="word-def-popup">'+hw.dataset.word+': '+hw.dataset.def+'</div>';setTimeout(function(){var d=el('word-def-area');if(d)d.innerHTML='';},4000);return;}
+  if(e.target.id==='show-qs-btn'){el('reading-questions').style.display='block';compTab='recall';document.querySelectorAll('#comp-tabs .cat-tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab==='recall');});renderCompTab();el('reading-questions').scrollIntoView({behavior:'smooth'});}
+});
+el('comp-tabs').addEventListener('click',function(e){
+  var t=e.target.closest('[data-tab]');if(!t)return;
+  compTab=t.dataset.tab;document.querySelectorAll('#comp-tabs .cat-tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===compTab);});
+  el('reading-status').textContent='';renderCompTab();
+});
+function renderCompTab(){
+  var s=STORIES[currentStory];var area=el('comp-area');
+  if(compTab==='recall'||compTab==='vocab'){
+    var qs=compTab==='recall'?s.recall:s.vocabQ;var html='';
+    qs.forEach(function(q,i){
+      html+='<div style="margin-bottom:16px"><div class="reading-q">'+(i+1)+'. '+q.q+'</div><div class="choice-grid" data-ans="'+q.answer+'">';
+      shuffle(q.choices).forEach(function(c){html+='<button class="choice-btn" data-val="'+c+'" style="font-size:0.9rem;padding:12px 8px">'+c+'</button>';});
+      html+='</div></div>';
+    });
+    area.innerHTML=html;
+  } else if(compTab==='order'){
+    sentClickCount=0;
+    var indices=shuffle([0,1,2,3].slice(0,s.order.length));
+    var html='<p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:10px">Click the sentences IN ORDER from first to last to retell the story!</p><ul class="sentence-list">';
+    indices.forEach(function(oi){html+='<li class="sent-item" data-origidx="'+oi+'"><span class="sent-num">?</span> '+s.order[oi]+'</li>';});
+    html+='</ul><div class="ctrl-row center" style="margin-top:8px"><button class="btn btn-outline btn-sm" id="reset-order-btn">Reset</button></div>';
+    area.innerHTML=html;
+  } else if(compTab==='fill'){
+    fillSelections=s.fills.map(function(){return null;});selectedFillWord=null;
+    var html='<p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:10px">Tap a word below, then tap the blank to fill it in!</p>';
+    s.fills.forEach(function(f,i){
+      var parts=f.sentence.split('_____');
+      html+='<div style="margin-bottom:18px"><div style="font-size:0.95rem;font-weight:600;color:var(--navy);margin-bottom:8px;line-height:1.8">'+(i+1)+'. '+parts[0]+'<span class="fill-blank" data-idx="'+i+'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>'+(parts[1]||'')+'</div><div class="word-bank">';
+      shuffle(f.choices).forEach(function(w){html+='<span class="wb-word" data-word="'+w+'" data-qidx="'+i+'">'+w+'</span>';});
+      html+='</div></div>';
+    });
+    html+='<div class="ctrl-row center"><button class="btn btn-coral btn-sm" id="check-fills-btn">Check My Answers</button></div>';
+    area.innerHTML=html;
+  }
+}
+el('comp-area').addEventListener('click',function(e){
+  var btn=e.target.closest('.choice-btn');
+  if(btn&&!btn.disabled&&!btn.classList.contains('correct')&&!btn.classList.contains('wrong')){
+    var grid=btn.closest('.choice-grid');
+    grid.querySelectorAll('.choice-btn').forEach(function(b){b.disabled=true;});
+    if(btn.dataset.val===grid.dataset.ans){btn.classList.add('correct');addStars(1,'reading');toast('+1 star!');}
+    else{btn.classList.add('wrong');grid.querySelectorAll('.choice-btn').forEach(function(b){if(b.dataset.val===grid.dataset.ans)b.classList.add('correct');});wrongAnswer();}
+    var allGrids=document.querySelectorAll('#comp-area .choice-grid');
+    var allDone=true;
+    allGrids.forEach(function(g){if(![].some.call(g.querySelectorAll('.choice-btn'),function(b){return b.classList.contains('correct')||b.classList.contains('wrong');}))allDone=false;});
+    if(allDone){var allCorrect=true;allGrids.forEach(function(g){if(![].some.call(g.querySelectorAll('.choice-btn'),function(b){return b.classList.contains('correct');}))allCorrect=false;});if(allCorrect){el('reading-status').textContent='All correct! Superstar reader!';addStars(2,'reading');}else{el('reading-status').textContent='Good try! Try the other tabs too.';}}
+    return;
+  }
+  var sentItem=e.target.closest('.sent-item');
+  if(sentItem&&!sentItem.classList.contains('correct-order')){
+    var s=STORIES[currentStory];
+    sentClickCount++;var origIdx=parseInt(sentItem.dataset.origidx);
+    sentItem.querySelector('.sent-num').textContent=String(sentClickCount);
+    if(origIdx===sentClickCount-1){sentItem.classList.add('correct-order');toast('Correct!');if(sentClickCount===s.order.length){addStars(3,'reading');el('reading-status').textContent='Perfect story order! +3 stars!';}}
+    else{sentItem.classList.add('wrong-order');wrongAnswer();el('reading-status').textContent='Not quite — look at the story again!';sentClickCount--;sentItem.querySelector('.sent-num').textContent='?';setTimeout(function(){sentItem.classList.remove('wrong-order');},700);}
+    return;
+  }
+  if(e.target.id==='reset-order-btn'){renderCompTab();return;}
+  var wbWord=e.target.closest('.wb-word');
+  if(wbWord&&!wbWord.classList.contains('used')){
+    document.querySelectorAll('.wb-word').forEach(function(w){w.classList.remove('selected');});
+    wbWord.classList.add('selected');selectedFillWord={word:wbWord.dataset.word,qidx:parseInt(wbWord.dataset.qidx)};return;
+  }
+  var blank=e.target.closest('.fill-blank');
+  if(blank&&selectedFillWord!==null){
+    blank.textContent=selectedFillWord.word;blank.classList.add('filled');
+    fillSelections[parseInt(blank.dataset.idx)]=selectedFillWord.word;
+    document.querySelectorAll('.wb-word').forEach(function(w){w.classList.remove('selected');});selectedFillWord=null;return;
+  }
+  if(e.target.id==='check-fills-btn'){
+    var s=STORIES[currentStory];var correct=0;
+    s.fills.forEach(function(f,i){
+      var blankEl=document.querySelector('.fill-blank[data-idx="'+i+'"]');
+      if(fillSelections[i]===f.blank){blankEl.classList.add('correct-fill');blankEl.classList.remove('filled','wrong-fill');correct++;}
+      else{blankEl.classList.add('wrong-fill');blankEl.classList.remove('filled','correct-fill');blankEl.textContent=f.blank;}
+    });
+    if(correct===s.fills.length){addStars(2,'reading');el('reading-status').textContent='All '+correct+' blanks correct! +2 stars!';toast('+2 stars! Amazing!');}
+    else{el('reading-status').textContent=correct+'/'+s.fills.length+' correct. Wrong blanks now show the right answer!';}
+  }
+});
+
+// ═══════════════════════════════════════════
+//  TIC TAC TOE
+// ═══════════════════════════════════════════
+var tttBoard,tttCurrent,tttMode='cpu',tttGameOver,tttScores={X:0,O:0,D:0};
+var TTT_WINS=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+el('section-ttt').addEventListener('click',function(e){
+  var mb=e.target.closest('#section-ttt .mode-btn');
+  if(mb){tttMode=mb.dataset.mode;el('ttt-vs-cpu').classList.toggle('active',tttMode==='cpu');el('ttt-vs-p2').classList.toggle('active',tttMode==='human');el('ttt-o-label').textContent=tttMode==='cpu'?'Computer (O)':'Friend (O)';resetTTT();return;}
+  if(e.target.id==='ttt-reset-btn'){resetTTT();return;}
+  var cell=e.target.closest('.ttt-cell');if(cell)tttClick(parseInt(cell.dataset.idx));
+});
+function initTTT(){resetTTT();}
+function resetTTT(){tttBoard=Array(9).fill('');tttCurrent='X';tttGameOver=false;renderTTT();el('ttt-status').textContent='Your turn! (X)';}
+function renderTTT(){el('ttt-board').innerHTML=tttBoard.map(function(v,i){return '<div class="ttt-cell'+(v?' taken':'')+' '+v+'" data-idx="'+i+'">'+(v==='X'?'X':v==='O'?'O':'')+'</div>';}).join('');}
+function tttClick(i){
+  if(tttBoard[i]||tttGameOver)return;if(tttMode==='cpu'&&tttCurrent==='O')return;
+  tttBoard[i]=tttCurrent;if(checkTTTWin())return;
+  tttCurrent=tttCurrent==='X'?'O':'X';renderTTT();
+  el('ttt-status').textContent=(tttCurrent==='X'?'Your':"Friend's")+' turn! ('+tttCurrent+')';
+  if(tttMode==='cpu'&&tttCurrent==='O'&&!tttGameOver)setTimeout(cpuTTT,520);
+}
+function cpuTTT(){if(tttGameOver)return;tttBoard[tttBestMove()]='O';if(!checkTTTWin()){tttCurrent='X';renderTTT();el('ttt-status').textContent='Your turn! (X)';}}
+function tttBestMove(){
+  var a,b,c,sym,row;
+  for(var si=0;si<2;si++){sym=si===0?'O':'X';
+    for(var wi=0;wi<TTT_WINS.length;wi++){a=TTT_WINS[wi][0];b=TTT_WINS[wi][1];c=TTT_WINS[wi][2];row=[tttBoard[a],tttBoard[b],tttBoard[c]];
+      if(row.filter(function(x){return x===sym;}).length===2&&row.indexOf('')>=0)return [a,b,c][row.indexOf('')];}}
+  if(!tttBoard[4])return 4;
+  var corners=[0,2,6,8].filter(function(x){return !tttBoard[x];});if(corners.length)return corners[Math.floor(Math.random()*corners.length)];
+  var empty=[];tttBoard.forEach(function(v,i){if(!v)empty.push(i);});return empty[Math.floor(Math.random()*empty.length)];
+}
+function checkTTTWin(){
+  var a,b,c;
+  for(var i=0;i<TTT_WINS.length;i++){a=TTT_WINS[i][0];b=TTT_WINS[i][1];c=TTT_WINS[i][2];
+    if(tttBoard[a]&&tttBoard[a]===tttBoard[b]&&tttBoard[b]===tttBoard[c]){
+      tttGameOver=true;renderTTT();
+      var cells=document.querySelectorAll('.ttt-cell');cells[a].classList.add('win-cell');cells[b].classList.add('win-cell');cells[c].classList.add('win-cell');
+      var w=tttBoard[a];tttScores[w]++;
+      el('ttt-score-x').textContent=tttScores.X;el('ttt-score-o').textContent=tttScores.O;el('ttt-score-d').textContent=tttScores.D;
+      var msg=w==='X'?'You win!':(tttMode==='cpu'?'Computer wins!':'Friend wins!');el('ttt-status').textContent=msg;toast(msg);return true;}}
+  if(tttBoard.indexOf('')<0){tttGameOver=true;tttScores.D++;el('ttt-score-x').textContent=tttScores.X;el('ttt-score-o').textContent=tttScores.O;el('ttt-score-d').textContent=tttScores.D;el('ttt-status').textContent='Draw!';toast('Draw!');return true;}
+  return false;
+}
+
+// ═══════════════════════════════════════════
+//  HANGMAN
+// ═══════════════════════════════════════════
+var HM_WORDS=[
+  {word:'apple',hint:'A fruit you might put in your lunch box'},{word:'planet',hint:'Earth is one of these'},
+  {word:'rocket',hint:'Blasts off into space'},{word:'spider',hint:'Eight legs, spins webs'},
+  {word:'flower',hint:'Plants make these to attract bees'},{word:'winter',hint:'The coldest season'},
+  {word:'bridge',hint:'You drive or walk across this'},{word:'school',hint:'A place where you learn'},
+  {word:'rabbit',hint:'Hops and has long ears'},{word:'bottle',hint:'Holds water or juice'},
+  {word:'garden',hint:'Where flowers and vegetables grow'},{word:'jungle',hint:'A thick tropical forest'},
+  {word:'castle',hint:'Where knights and kings lived'},{word:'crayon',hint:'Used to color pictures'},
+  {word:'mirror',hint:'Shows your reflection'},{word:'number',hint:'Used in math'},
+  {word:'pencil',hint:'A writing and drawing tool'},{word:'circle',hint:'A perfectly round shape'},
+  {word:'finger',hint:'Part of your hand'},{word:'kangaroo',hint:'Jumps and carries babies in a pouch'},
+  {word:'umbrella',hint:'Keeps you dry in the rain'},{word:'volcano',hint:'Erupts with lava'},
+  {word:'dolphin',hint:'A smart ocean mammal'},{word:'elephant',hint:'The largest land animal'},
+  {word:'library',hint:'A quiet place full of books'}
+];
+var HM_PARTS=['hm-head','hm-body','hm-arm-l','hm-arm-r','hm-leg-l','hm-leg-r'];
+var hmWord='',hmGuessed=[],hmWrong=0,hmMode='cpu',hmWins=0,hmLosses=0;
+el('hm-vs-cpu').addEventListener('click',function(){hmMode='cpu';el('hm-vs-cpu').classList.add('active');el('hm-vs-p2').classList.remove('active');el('hm-entry-panel').style.display='none';newHangmanGame();});
+el('hm-vs-p2').addEventListener('click',function(){hmMode='human';el('hm-vs-p2').classList.add('active');el('hm-vs-cpu').classList.remove('active');el('hm-entry-panel').style.display='block';el('hm-word').innerHTML='';el('hm-alpha').innerHTML='';el('hm-status').textContent='Player 2: enter a secret word above!';HM_PARTS.forEach(function(id){el(id).setAttribute('opacity','0');});});
+el('hm-start-btn').addEventListener('click',startCustomHangman);
+el('hm-new-btn').addEventListener('click',newHangmanGame);
+function initHangman(){hmMode='cpu';el('hm-vs-cpu').classList.add('active');el('hm-vs-p2').classList.remove('active');el('hm-entry-panel').style.display='none';newHangmanGame();}
+function newHangmanGame(){
+  if(hmMode==='human'){el('hm-entry-panel').style.display='block';el('hm-custom-word').value='';el('hm-word').innerHTML='';el('hm-alpha').innerHTML='';el('hm-status').textContent='Player 2: enter a secret word above!';HM_PARTS.forEach(function(id){el(id).setAttribute('opacity','0');});return;}
+  var pick=HM_WORDS[Math.floor(Math.random()*HM_WORDS.length)];startHangmanWord(pick.word,pick.hint);
+}
+function startCustomHangman(){var raw=el('hm-custom-word').value.trim().toLowerCase();if(!raw||raw.length<2||!/^[a-z]+$/.test(raw)){toast('Please enter a valid word (letters only)!');return;}el('hm-entry-panel').style.display='none';startHangmanWord(raw,'Entered by Player 2');}
+function startHangmanWord(word,hint){hmWord=word;hmGuessed=[];hmWrong=0;el('hm-hint').textContent=hint;el('hm-wrong-count').textContent='0';el('hm-status').textContent='Guess a letter!';HM_PARTS.forEach(function(id){el(id).setAttribute('opacity','0');});renderHMWord();renderHMAlpha();}
+function renderHMWord(){el('hm-word').innerHTML=hmWord.split('').map(function(l){return '<div class="word-letter">'+(hmGuessed.indexOf(l)>=0?l.toUpperCase():'')+'</div>';}).join('');}
+function renderHMAlpha(){el('hm-alpha').innerHTML='abcdefghijklmnopqrstuvwxyz'.split('').map(function(l){var hit=hmGuessed.indexOf(l)>=0&&hmWord.indexOf(l)>=0;var miss=hmGuessed.indexOf(l)>=0&&hmWord.indexOf(l)<0;return '<button class="alpha-btn'+(hit?' hit':miss?' miss':'')+'" data-letter="'+l+'" '+(hmGuessed.indexOf(l)>=0?'disabled':'')+'>'+l.toUpperCase()+'</button>';}).join('');}
+el('hm-alpha').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-letter]');if(!btn||btn.disabled)return;
+  var l=btn.dataset.letter;if(hmGuessed.indexOf(l)>=0||!hmWord)return;
+  hmGuessed.push(l);
+  if(hmWord.indexOf(l)<0){hmWrong++;el('hm-wrong-count').textContent=String(hmWrong);if(hmWrong<=6)el(HM_PARTS[hmWrong-1]).setAttribute('opacity','1');}
+  renderHMWord();renderHMAlpha();
+  var won=hmWord.split('').every(function(c){return hmGuessed.indexOf(c)>=0;});
+  if(won){hmWins++;el('hm-wins').textContent=String(hmWins);el('hm-status').textContent='You got it! The word was '+hmWord.toUpperCase()+'!';toast('You guessed it!');}
+  else if(hmWrong>=6){hmLosses++;el('hm-losses').textContent=String(hmLosses);el('hm-status').textContent='The word was '+hmWord.toUpperCase()+'. Try again!';toast('The word was '+hmWord.toUpperCase(),2500);}
+});
+
+// ── INIT ──
+updateHUD();
+initMath();
+
+// ── ADD SPELLING STARS TO HUD ──
+var spellStars = 0;
+var origAddStars = addStars;
+addStars = function(n, subj) {
+  if (subj === 'spelling') spellStars += n;
+  origAddStars(n, subj);
+};
+var origUpdateHUD = updateHUD;
+updateHUD = function() {
+  origUpdateHUD();
+  var hs = el('hs-spelling'); if (hs) hs.textContent = spellStars;
+};
+
+// ─────────────────────────────────────────────
+//  SPELLING GAME: ROBOT REPAIR
+// ─────────────────────────────────────────────
+
+// Word data — each entry has:
+//   word: the correct spelling
+//   sounds: array of phoneme groupings (what goes in each box)
+//   emoji: visual cue
+//   sentence: audio context sentence
+//   heartIdx: index of irregular/tricky sound box (-1 if none)
+//   heartHint: explanation for heart word tricky part
+//   wrongHints: per-sound teaching hint shown when a box is wrong
+
+var SPELL_WORDS = {
+  cvc: [
+    {word:'cat', sounds:['c','a','t'], emoji:'🐱', sentence:'The cat sat on the mat.',
+     heartIdx:-1,
+     wrongHints:{0:'The /k/ sound at the start is spelled with the letter C.',1:'Listen for the short "a" sound — like in "apple".',2:'The last sound /t/ is spelled T.'}},
+    {word:'dog', sounds:['d','o','g'], emoji:'🐶', sentence:'The dog likes to run.',
+     heartIdx:-1,
+     wrongHints:{0:'The /d/ sound is spelled D.',1:'That short "o" sound is just the letter O.',2:'The last sound /g/ is spelled G.'}},
+    {word:'sun', sounds:['s','u','n'], emoji:'☀️', sentence:'The sun is bright today.',
+     heartIdx:-1,
+     wrongHints:{0:'The /s/ sound is spelled S.',1:'That short "u" sound uses the letter U.',2:'The last sound /n/ is spelled N.'}},
+    {word:'map', sounds:['m','a','p'], emoji:'🗺️', sentence:'We looked at the map.',
+     heartIdx:-1,
+     wrongHints:{0:'The /m/ sound is M.',1:'Short "a" like in apple — just the letter A.',2:'The last sound /p/ is P.'}},
+    {word:'bed', sounds:['b','e','d'], emoji:'🛏️', sentence:'I sleep in my bed.',
+     heartIdx:-1,
+     wrongHints:{0:'The /b/ sound is B.',1:'Short "e" like in egg — just the letter E.',2:'The last sound /d/ is D.'}},
+    {word:'pig', sounds:['p','i','g'], emoji:'🐷', sentence:'The pig rolled in the mud.',
+     heartIdx:-1,
+     wrongHints:{0:'The /p/ sound is P.',1:'Short "i" like in "it" — just the letter I.',2:'The last sound /g/ is G.'}},
+    {word:'hop', sounds:['h','o','p'], emoji:'🐇', sentence:'The bunny likes to hop.',
+     heartIdx:-1,
+     wrongHints:{0:'The /h/ sound is H.',1:'Short "o" — just the letter O.',2:'The last sound /p/ is P.'}},
+    {word:'cup', sounds:['c','u','p'], emoji:'☕', sentence:'Pour juice in the cup.',
+     heartIdx:-1,
+     wrongHints:{0:'The /k/ sound here is spelled C.',1:'Short "u" sound — just the letter U.',2:'The last sound /p/ is P.'}}
+  ],
+  blend: [
+    {word:'ship', sounds:['sh','i','p'], emoji:'🚢', sentence:'The big ship sailed the sea.',
+     heartIdx:-1,
+     wrongHints:{0:'The /sh/ sound uses TWO letters working as a team: SH.',1:'Short "i" — just the letter I.',2:'The last sound /p/ is P.'}},
+    {word:'chin', sounds:['ch','i','n'], emoji:'🧒', sentence:'She has a tiny chin.',
+     heartIdx:-1,
+     wrongHints:{0:'The /ch/ sound uses TWO letters: CH.',1:'Short "i" — just the letter I.',2:'The last sound /n/ is N.'}},
+    {word:'thin', sounds:['th','i','n'], emoji:'📏', sentence:'The paper is very thin.',
+     heartIdx:-1,
+     wrongHints:{0:'The /th/ sound uses TWO letters: TH.',1:'Short "i" — just the letter I.',2:'The last sound /n/ is N.'}},
+    {word:'frog', sounds:['fr','o','g'], emoji:'🐸', sentence:'The frog sat on a lily pad.',
+     heartIdx:-1,
+     wrongHints:{0:'Blend the F and R together: FR.',1:'Short "o" — just the letter O.',2:'The last sound /g/ is G.'}},
+    {word:'clap', sounds:['cl','a','p'], emoji:'👏', sentence:'Clap your hands!',
+     heartIdx:-1,
+     wrongHints:{0:'Blend C and L together: CL.',1:'Short "a" — just the letter A.',2:'The last sound /p/ is P.'}},
+    {word:'drum', sounds:['dr','u','m'], emoji:'🥁', sentence:'He plays the drum.',
+     heartIdx:-1,
+     wrongHints:{0:'Blend D and R together: DR.',1:'Short "u" — just the letter U.',2:'The last sound /m/ is M.'}},
+    {word:'step', sounds:['st','e','p'], emoji:'👣', sentence:'Take one step forward.',
+     heartIdx:-1,
+     wrongHints:{0:'Blend S and T together: ST.',1:'Short "e" — just the letter E.',2:'The last sound /p/ is P.'}}
+  ],
+  vowelteam: [
+    {word:'boat', sounds:['b','oa','t'], emoji:'⛵', sentence:'The boat floated on the lake.',
+     heartIdx:-1,
+     wrongHints:{0:'The /b/ sound is B.',1:'The long "o" sound in "boat" uses the vowel team OA — two letters that work together!',2:'The last sound /t/ is T.'}},
+    {word:'rain', sounds:['r','ai','n'], emoji:'🌧️', sentence:'The rain makes puddles.',
+     heartIdx:-1,
+     wrongHints:{0:'The /r/ sound is R.',1:'The long "a" sound in "rain" uses the vowel team AI.',2:'The last sound /n/ is N.'}},
+    {word:'light', sounds:['l','igh','t'], emoji:'💡', sentence:'Turn on the light.',
+     heartIdx:-1,
+     wrongHints:{0:'The /l/ sound is L.',1:'The long "i" sound in "light" is spelled IGH — three letters!',2:'The last sound /t/ is T.'}},
+    {word:'feet', sounds:['f','ee','t'], emoji:'🦶', sentence:'My feet are cold.',
+     heartIdx:-1,
+     wrongHints:{0:'The /f/ sound is F.',1:'The long "e" sound in "feet" uses the vowel team EE.',2:'The last sound /t/ is T.'}},
+    {word:'seal', sounds:['s','ea','l'], emoji:'🦭', sentence:'The seal clapped its flippers.',
+     heartIdx:-1,
+     wrongHints:{0:'The /s/ sound is S.',1:'The long "e" sound in "seal" uses the vowel team EA.',2:'The last sound /l/ is L.'}},
+    {word:'coat', sounds:['c','oa','t'], emoji:'🧥', sentence:'Put on your coat, it is cold!',
+     heartIdx:-1,
+     wrongHints:{0:'The /k/ sound is C.',1:'The long "o" sound uses the vowel team OA.',2:'The last sound /t/ is T.'}},
+    {word:'night', sounds:['n','igh','t'], emoji:'🌙', sentence:'Stars come out at night.',
+     heartIdx:-1,
+     wrongHints:{0:'The /n/ sound is N.',1:'The long "i" sound is spelled IGH — three letters!',2:'The last sound /t/ is T.'}}
+  ],
+  heart: [
+    {word:'said', sounds:['s','ai','d'], emoji:'💬', sentence:'She said hello to her friend.',
+     heartIdx:1,
+     heartHint:'In the word "said", the /e/ sound is spelled AI — a rule-breaker! Learn this part by heart.',
+     wrongHints:{0:'The /s/ sound is S.',1:'Tricky! The short /e/ sound in "said" is spelled AI — that is the heart part!',2:'The last sound /d/ is D.'}},
+    {word:'was', sounds:['w','a','z'], emoji:'🤔', sentence:'It was a sunny day.',
+     heartIdx:2,
+     heartHint:'In "was", the /z/ sound at the end is spelled with the letter S — a rule-breaker!',
+     wrongHints:{0:'The /w/ sound is W.',1:'The "a" in "was" sounds like /u/ — that is unusual!',2:'Tricky! The /z/ sound at the end of "was" is spelled S — the heart part!'}},
+    {word:'the', sounds:['th','e'], emoji:'👉', sentence:'Look at the big star.',
+     heartIdx:1,
+     heartHint:'The "e" in "the" makes a quiet /uh/ sound — it is a rule-breaker you just have to know!',
+     wrongHints:{0:'The /th/ sound uses TH.',1:'Heart word alert! The "e" in "the" is a tricky one — just learn it by heart.'}},
+    {word:'have', sounds:['h','a','ve'], emoji:'🖐️', sentence:'I have two puppies.',
+     heartIdx:2,
+     heartHint:'The VE at the end of "have" has a silent E — the word says /hav/ not /have/. Heart part!',
+     wrongHints:{0:'The /h/ sound is H.',1:'Short "a" sound — just the letter A.',2:'Heart word! The /v/ sound at the end is spelled VE with a silent E.'}},
+    {word:'they', sounds:['th','ey'], emoji:'👫', sentence:'They went to school together.',
+     heartIdx:1,
+     heartHint:'The long "a" sound in "they" is spelled EY — that is the tricky heart part!',
+     wrongHints:{0:'The /th/ sound uses TH.',1:'Heart word! The long "a" sound in "they" is spelled EY — learn this by heart.'}},
+    {word:'come', sounds:['c','o','me'], emoji:'🏃', sentence:'Come and play with us!',
+     heartIdx:2,
+     heartHint:'The ME at the end of "come" is silent — it says /kum/ not /kohm/. Heart part!',
+     wrongHints:{0:'The /k/ sound is spelled C.',1:'The "o" in "come" sounds like /u/ — unusual!',2:'Heart word! The E at the end is silent — spelled ME but quiet.'}},
+    {word:'here', sounds:['h','er','e'], emoji:'📍', sentence:'Come stand right here.',
+     heartIdx:2,
+     heartHint:'The silent E at the end of "here" is the heart part — it makes the ER sound long.',
+     wrongHints:{0:'The /h/ sound is H.',1:'The /ear/ sound here is spelled ER.',2:'Heart word! That final E is silent — it changes the vowel sound.'}}
+  ]
+};
+
+var spellCat = 'cvc';
+var spellPool = [], spellPoolIdx = 0;
+var spellQ = 0, spellSoundPts = 0, spellRepairPts = 0, spellTotalPts = 0;
+var currentSpellWord = null, spellPhase = 'input'; // phases: input | repair | done
+
+el('spell-cats').addEventListener('click', function(e) {
+  var t = e.target.closest('[data-scat]');
+  if (!t) return;
+  spellCat = t.dataset.scat; spellQ = 0; spellSoundPts = 0; spellRepairPts = 0; spellTotalPts = 0;
+  document.querySelectorAll('#spell-cats .cat-tab').forEach(function(b) { b.classList.toggle('active', b.dataset.scat === spellCat); });
+  initSpelling();
+});
+
+el('spell-check-btn').addEventListener('click', checkSpelling);
+el('spell-next-btn').addEventListener('click', nextSpellWord);
+
+function initSpelling() {
+  var words = SPELL_WORDS[spellCat].slice();
+  // shuffle into a non-repeating pool
+  spellPool = words.slice().sort(function() { return Math.random() - 0.5; });
+  spellPoolIdx = 0;
+  spellQ = 0; spellSoundPts = 0; spellRepairPts = 0; spellTotalPts = 0;
+  updateSpellScoreDisplay();
+  loadSpellWord();
+}
+
+function loadSpellWord() {
+  spellPhase = 'input';
+  if (spellPoolIdx >= spellPool.length) {
+    spellPool = spellPool.slice().sort(function() { return Math.random() - 0.5; });
+    spellPoolIdx = 0;
+  }
+  currentSpellWord = spellPool[spellPoolIdx];
+  spellPoolIdx++;
+
+  el('spell-progress').style.width = Math.min(Math.round(spellQ / 10 * 100), 100) + '%';
+  el('spell-q-count').textContent = 'Word ' + (spellQ % 10 + 1) + '/10';
+  el('spell-score-inline').textContent = 'Sound Points: ' + spellSoundPts;
+
+  // Robot speech bubble
+  el('robot-face').textContent = '🤖';
+  el('robot-speech').textContent = 'Can you spell the word for this picture? Listen: ' + currentSpellWord.word.toUpperCase() + '... "' + currentSpellWord.sentence + '"';
+
+  // Word prompt
+  el('spell-word-prompt').innerHTML = '<span class="word-image">' + currentSpellWord.emoji + '</span><div class="word-cue">' + currentSpellWord.sentence + '</div>';
+
+  // Build sound boxes
+  var boxesHtml = '<div class="sound-box-row" id="sound-box-row">';
+  currentSpellWord.sounds.forEach(function(s, i) {
+    var isHeart = currentSpellWord.heartIdx === i;
+    var heartBadge = isHeart ? '<span class="heart-badge">❤️</span>' : '';
+    var labelTxt = 'Sound ' + (i + 1);
+    if (currentSpellWord.sounds.length === 2) {
+      labelTxt = i === 0 ? 'Start' : 'End';
+    } else {
+      if (i === 0) labelTxt = 'Start';
+      else if (i === currentSpellWord.sounds.length - 1) labelTxt = 'End';
+      else labelTxt = 'Middle';
+    }
+    var inputClass = isHeart ? ' heart-box' : '';
+    boxesHtml += '<div class="sound-box" id="sbox-' + i + '">' + heartBadge +
+      '<input type="text" class="spell-input' + inputClass + '" id="sinput-' + i + '" maxlength="4" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="...">' +
+      '<div class="sound-label">' + labelTxt + '</div></div>';
+  });
+  boxesHtml += '</div>';
+
+  el('spell-boxes-area').innerHTML = boxesHtml;
+  el('spell-feedback').innerHTML = '';
+  el('spell-check-btn').style.display = 'inline-flex';
+  el('spell-next-btn').style.display = 'none';
+
+  // focus first input
+  setTimeout(function() {
+    var first = el('sinput-0');
+    if (first) first.focus();
+  }, 100);
+
+  // Auto-advance on Enter in any input
+  currentSpellWord.sounds.forEach(function(s, i) {
+    var inp = el('sinput-' + i);
+    if (!inp) return;
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        var next = el('sinput-' + (i + 1));
+        if (next) next.focus(); else checkSpelling();
+      }
+    });
+  });
+}
+
+function checkSpelling() {
+  if (!currentSpellWord || spellPhase !== 'input') return;
+  el('spell-check-btn').style.display = 'none';
+
+  var w = currentSpellWord;
+  var totalSounds = w.sounds.length;
+  var correctSounds = 0;
+  var wrongBoxes = [];
+  var repairNeeded = [];
+
+  w.sounds.forEach(function(correctSound, i) {
+    var inp = el('sinput-' + i);
+    if (!inp) return;
+    var typed = inp.value.trim().toLowerCase();
+    var expected = correctSound.toLowerCase();
+    if (typed === expected) {
+      correctSounds++;
+      inp.classList.add('correct-box');
+      inp.disabled = true;
+    } else {
+      inp.classList.add('wrong-box');
+      wrongBoxes.push(i);
+      repairNeeded.push(i);
+    }
+  });
+
+  // Award sound points: 10 per correct sound on first try
+  var soundPtsEarned = correctSounds * 10;
+  spellSoundPts += soundPtsEarned;
+  el('spell-score-inline').textContent = 'Sound Points: ' + spellSoundPts;
+
+  // Build feedback
+  var fbHtml = '';
+  if (correctSounds === totalSounds) {
+    // Perfect!
+    spellPhase = 'done';
+    el('robot-face').textContent = '🥳';
+    el('robot-speech').textContent = 'AMAZING! You repaired my word perfectly! The word is: ' + w.word.toUpperCase();
+    fbHtml = '<div class="spell-feedback-card spell-fb-correct">';
+    fbHtml += '<strong>🎉 Perfect repair! +' + soundPtsEarned + ' sound points!</strong><br>';
+    fbHtml += 'You spelled <strong>' + w.word.toUpperCase() + '</strong> exactly right! Every sound matched!';
+    // Point pops
+    w.sounds.forEach(function(s) {
+      fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span>';
+    });
+    fbHtml += '</div>';
+    spellQ++;
+    var starPts = Math.ceil(soundPtsEarned / 10);
+    addStars(starPts, 'spelling');
+    spellTotalPts += soundPtsEarned;
+    updateSpellScoreDisplay();
+    el('spell-next-btn').style.display = 'inline-flex';
+  } else {
+    // Partial — need repair
+    spellPhase = 'repair';
+    el('robot-face').textContent = '🔧';
+
+    var correctList = '';
+    w.sounds.forEach(function(s, i) {
+      if (wrongBoxes.indexOf(i) < 0) {
+        correctList += '/' + s + '/ ';
+      }
+    });
+
+    el('robot-speech').textContent = correctSounds > 0
+      ? 'Great listening! You got ' + correctSounds + ' sound' + (correctSounds > 1 ? 's' : '') + ' right! Now let\'s repair the rest!'
+      : 'No worries! Let\'s fix the sounds together!';
+
+    fbHtml = '<div class="spell-feedback-card spell-fb-partial">';
+    fbHtml += '<strong>You scored ' + soundPtsEarned + ' sound points!</strong><br>';
+    if (correctSounds > 0) {
+      fbHtml += 'Sounds you nailed: ';
+      w.sounds.forEach(function(s, i) {
+        if (wrongBoxes.indexOf(i) < 0) fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span>';
+        else fbHtml += '<span class="point-pop point-pop-amber">/' + s + '/ needs fixing</span>';
+      });
+      fbHtml += '<br>';
+    }
+    fbHtml += '<strong>Now repair the ' + (wrongBoxes.length === 1 ? 'box' : 'boxes') + ' shown in orange:</strong><br>';
+
+    // Teaching hints for each wrong box
+    wrongBoxes.forEach(function(i) {
+      var isHeart = w.heartIdx === i;
+      var hint = (w.wrongHints && w.wrongHints[i]) ? w.wrongHints[i] : 'Type the correct letters for sound ' + (i + 1) + '.';
+      if (isHeart && w.heartHint) hint = '❤️ Heart Word Alert! ' + w.heartHint;
+      fbHtml += '<div style="margin-top:6px;font-size:0.88rem">Sound ' + (i + 1) + ': ' + hint + '</div>';
+      // Clear the wrong input and re-enable it
+      var inp = el('sinput-' + i);
+      if (inp) {
+        inp.value = '';
+        inp.disabled = false;
+        inp.classList.remove('wrong-box');
+        if (isHeart) inp.classList.add('heart-box');
+        setTimeout(function() { inp.focus(); }, 100);
+      }
+    });
+    fbHtml += '</div>';
+
+    // Show a repair-check button
+    var repairBtnHtml = '<div style="text-align:center;margin-top:10px"><button class="btn btn-teal btn-sm" id="spell-repair-btn">✅ Check My Repairs</button></div>';
+    fbHtml += repairBtnHtml;
+
+    spellTotalPts += soundPtsEarned;
+    updateSpellScoreDisplay();
+  }
+
+  el('spell-feedback').innerHTML = fbHtml;
+
+  // Attach repair check listener
+  var repBtn = el('spell-repair-btn');
+  if (repBtn) {
+    repBtn.addEventListener('click', function() { checkRepairs(repairNeeded); });
+  }
+}
+
+function checkRepairs(repairBoxes) {
+  if (!currentSpellWord) return;
+  var w = currentSpellWord;
+  var allFixed = true;
+  var repairPtsEarned = 0;
+  var stillWrong = [];
+
+  repairBoxes.forEach(function(i) {
+    var inp = el('sinput-' + i);
+    if (!inp) return;
+    var typed = inp.value.trim().toLowerCase();
+    var expected = w.sounds[i].toLowerCase();
+    if (typed === expected) {
+      inp.classList.add('fixed-box');
+      inp.disabled = true;
+      repairPtsEarned += 5;
+    } else {
+      allFixed = false;
+      stillWrong.push(i);
+      inp.classList.add('wrong-box');
+    }
+  });
+
+  spellRepairPts += repairPtsEarned;
+  spellTotalPts += repairPtsEarned;
+
+  var fbHtml = '';
+  if (allFixed) {
+    spellPhase = 'done';
+    el('robot-face').textContent = '😄';
+    el('robot-speech').textContent = 'Fixed! The word ' + w.word.toUpperCase() + ' is repaired! Bolt thanks you!';
+    fbHtml = '<div class="spell-feedback-card spell-fb-repair">';
+    fbHtml += '<strong>🔧 Repair complete! +' + repairPtsEarned + ' repair bonus points!</strong><br>';
+    fbHtml += 'You fixed the word <strong>' + w.word.toUpperCase() + '</strong>! Great perseverance!';
+    fbHtml += '</div>';
+    spellQ++;
+    var starPts = Math.max(1, Math.ceil(repairPtsEarned / 5));
+    addStars(starPts, 'spelling');
+    updateSpellScoreDisplay();
+    el('spell-next-btn').style.display = 'inline-flex';
+  } else {
+    // Show answers for still-wrong boxes
+    el('robot-face').textContent = '💡';
+    el('robot-speech').textContent = 'Almost! Here is the correct spelling — type it in and you will get it!';
+    fbHtml = '<div class="spell-feedback-card spell-fb-repair">';
+    fbHtml += '<strong>So close! Here are the correct letters:</strong><br>';
+    stillWrong.forEach(function(i) {
+      var inp = el('sinput-' + i);
+      if (inp) { inp.value = ''; inp.disabled = false; inp.classList.remove('wrong-box'); }
+      fbHtml += '<div style="margin:4px 0">Box ' + (i + 1) + ': type <strong style="color:var(--teal)">' + w.sounds[i].toUpperCase() + '</strong></div>';
+    });
+    fbHtml += '<div style="text-align:center;margin-top:10px"><button class="btn btn-navy btn-sm" id="spell-repair-btn">✅ Check Again</button></div>';
+    fbHtml += '</div>';
+    updateSpellScoreDisplay();
+    el('spell-feedback').innerHTML = fbHtml;
+    var repBtn2 = el('spell-repair-btn');
+    if (repBtn2) repBtn2.addEventListener('click', function() { checkRepairs(stillWrong); });
+    return;
+  }
+  el('spell-feedback').innerHTML = fbHtml;
+}
+
+function nextSpellWord() {
+  el('spell-next-btn').style.display = 'none';
+  loadSpellWord();
+}
+
+function updateSpellScoreDisplay() {
+  el('sp-sound').textContent = spellSoundPts;
+  el('sp-repair').textContent = spellRepairPts;
+  el('sp-total').textContent = spellTotalPts;
+  var hs = el('hs-spelling'); if (hs) hs.textContent = spellStars;
+}
+
+// Hook spelling into showSection
+var origShowSection = showSection;
+showSection = function(id) {
+  origShowSection(id);
+  if (id === 'spelling') initSpelling();
+};
+
+</script>
+</body>
+</html>
