@@ -373,14 +373,25 @@ header p{color:var(--text-dim);font-size:0.92rem;margin-top:4px}
   <div id="section-spelling" class="section">
     <div class="card">
       <div class="card-title">&#x1F916; Robot Repair Workshop</div>
-      <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">
-        Bolt the robot speaks in broken words! Type each sound you hear into its box to repair his speech.
-        Get points for every correct sound — even partial spellings score!
-      </p>
+
+      <!-- BIG KID-FRIENDLY INSTRUCTIONS -->
+      <div style="background:var(--navy);color:white;border-radius:16px;padding:18px 20px;margin-bottom:16px;text-align:center">
+        <div style="font-family:'Fredoka One',sans-serif;font-size:1.4rem;margin-bottom:10px">How to Play!</div>
+        <div style="font-size:1.05rem;font-weight:700;line-height:1.7">
+          &#x1F916; Bolt the Robot has <span style="color:#ffd700">broken words!</span><br>
+          1&#xFE0F;&#x20E3; Look at the picture and listen to the word<br>
+          2&#xFE0F;&#x20E3; Type ONE sound in each box<br>
+          3&#xFE0F;&#x20E3; Press <span style="color:#00e5b0">Check Repair!</span> when you are done<br>
+          4&#xFE0F;&#x20E3; Fix any mistakes to earn bonus points!
+        </div>
+        <div style="margin-top:10px;font-size:0.9rem;opacity:0.8">&#x1F4A1; Press <strong>Tab</strong> or <strong>Enter</strong> to jump to the next box</div>
+      </div>
+
       <div class="cat-tabs" id="spell-cats">
-        <button class="cat-tab active" data-scat="cvc">&#x1F535; Simple Words</button>
+        <button class="cat-tab active" data-scat="cvc">&#x1F535; 3-Letter Words</button>
         <button class="cat-tab" data-scat="blend">&#x1F7E1; Blends</button>
         <button class="cat-tab" data-scat="vowelteam">&#x1F7E3; Vowel Teams</button>
+        <button class="cat-tab" data-scat="longer">&#x1F7E2; Longer Words</button>
         <button class="cat-tab" data-scat="heart">&#x2764;&#xFE0F; Heart Words</button>
       </div>
       <div class="progress-wrap"><div class="progress-fill" id="spell-progress" style="width:0%"></div></div>
@@ -390,28 +401,28 @@ header p{color:var(--text-dim);font-size:0.92rem;margin-top:4px}
       </div>
 
       <!-- Robot character -->
-      <div style="text-align:center;margin-bottom:16px">
+      <div style="text-align:center;margin-bottom:14px">
         <div id="robot-face" style="font-size:3.5rem;transition:all .3s;display:inline-block">&#x1F916;</div>
         <div id="robot-speech" class="robot-bubble"></div>
       </div>
 
-      <!-- Word image + audio cue -->
+      <!-- Picture clue ONLY — word text hidden until after answer -->
       <div id="spell-word-prompt" style="text-align:center;margin-bottom:16px"></div>
 
       <!-- Sound boxes -->
       <div id="spell-boxes-area" style="margin-bottom:14px"></div>
 
-      <!-- Check button -->
+      <!-- Buttons -->
       <div style="text-align:center;margin-bottom:10px">
-        <button class="btn btn-navy btn-sm" id="spell-check-btn" style="display:none">&#x1F527; Check Repair!</button>
-        <button class="btn btn-teal btn-sm" id="spell-next-btn" style="display:none">&#x27A1;&#xFE0F; Next Word</button>
+        <button class="btn btn-navy" id="spell-check-btn" style="display:none;font-size:1.1rem;padding:14px 32px">&#x1F527; Check Repair!</button>
+        <button class="btn btn-teal" id="spell-next-btn" style="display:none;font-size:1.1rem;padding:14px 32px">&#x27A1;&#xFE0F; Next Word!</button>
       </div>
 
       <!-- Feedback area -->
       <div id="spell-feedback" style="min-height:60px"></div>
 
       <!-- Score breakdown -->
-      <div id="spell-scores" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px">
         <div class="ttt-box"><div class="bname">&#x1F50A; Sound Points</div><div class="bval" id="sp-sound" style="color:var(--blue)">0</div></div>
         <div class="ttt-box"><div class="bname">&#x1F527; Repair Bonus</div><div class="bval" id="sp-repair" style="color:var(--teal)">0</div></div>
         <div class="ttt-box"><div class="bname">&#x2B50; Total Stars</div><div class="bval" id="sp-total" style="color:var(--amber)">0</div></div>
@@ -1166,134 +1177,172 @@ updateHUD = function() {
   var hs = el('hs-spelling'); if (hs) hs.textContent = spellStars;
 };
 
-// ─────────────────────────────────────────────
-//  SPELLING GAME: ROBOT REPAIR
-// ─────────────────────────────────────────────
 
-// Word data — each entry has:
-//   word: the correct spelling
-//   sounds: array of phoneme groupings (what goes in each box)
-//   emoji: visual cue
-//   sentence: audio context sentence
-//   heartIdx: index of irregular/tricky sound box (-1 if none)
-//   heartHint: explanation for heart word tricky part
-//   wrongHints: per-sound teaching hint shown when a box is wrong
+// ─────────────────────────────────────────────
+//  SPELLING GAME: ROBOT REPAIR  (redesigned)
+// ─────────────────────────────────────────────
+//
+// KEY DESIGN FIX: The word is NEVER shown as text before answering.
+// The child sees: picture emoji + a clue sentence with the word BLANKED OUT.
+// After they answer (right or wrong), the word is revealed in the feedback.
+//
+// sounds[] = the phoneme groups the child types into boxes.
+// The sentence uses ___ instead of the target word.
+// The word is only spoken/shown AFTER checking.
 
 var SPELL_WORDS = {
   cvc: [
-    {word:'cat', sounds:['c','a','t'], emoji:'🐱', sentence:'The cat sat on the mat.',
-     heartIdx:-1,
-     wrongHints:{0:'The /k/ sound at the start is spelled with the letter C.',1:'Listen for the short "a" sound — like in "apple".',2:'The last sound /t/ is spelled T.'}},
-    {word:'dog', sounds:['d','o','g'], emoji:'🐶', sentence:'The dog likes to run.',
-     heartIdx:-1,
-     wrongHints:{0:'The /d/ sound is spelled D.',1:'That short "o" sound is just the letter O.',2:'The last sound /g/ is spelled G.'}},
-    {word:'sun', sounds:['s','u','n'], emoji:'☀️', sentence:'The sun is bright today.',
-     heartIdx:-1,
-     wrongHints:{0:'The /s/ sound is spelled S.',1:'That short "u" sound uses the letter U.',2:'The last sound /n/ is spelled N.'}},
-    {word:'map', sounds:['m','a','p'], emoji:'🗺️', sentence:'We looked at the map.',
-     heartIdx:-1,
-     wrongHints:{0:'The /m/ sound is M.',1:'Short "a" like in apple — just the letter A.',2:'The last sound /p/ is P.'}},
-    {word:'bed', sounds:['b','e','d'], emoji:'🛏️', sentence:'I sleep in my bed.',
-     heartIdx:-1,
-     wrongHints:{0:'The /b/ sound is B.',1:'Short "e" like in egg — just the letter E.',2:'The last sound /d/ is D.'}},
-    {word:'pig', sounds:['p','i','g'], emoji:'🐷', sentence:'The pig rolled in the mud.',
-     heartIdx:-1,
-     wrongHints:{0:'The /p/ sound is P.',1:'Short "i" like in "it" — just the letter I.',2:'The last sound /g/ is G.'}},
-    {word:'hop', sounds:['h','o','p'], emoji:'🐇', sentence:'The bunny likes to hop.',
-     heartIdx:-1,
-     wrongHints:{0:'The /h/ sound is H.',1:'Short "o" — just the letter O.',2:'The last sound /p/ is P.'}},
-    {word:'cup', sounds:['c','u','p'], emoji:'☕', sentence:'Pour juice in the cup.',
-     heartIdx:-1,
-     wrongHints:{0:'The /k/ sound here is spelled C.',1:'Short "u" sound — just the letter U.',2:'The last sound /p/ is P.'}}
+    {word:'cat', sounds:['c','a','t'], emoji:'🐱',
+     clue:'This animal says meow. It is a ___.',
+     wrongHints:{0:'The /k/ sound at the start — use the letter C.',1:'Short "a" like in apple — just write A.',2:'The last /t/ sound — write the letter T.'}},
+    {word:'dog', sounds:['d','o','g'], emoji:'🐶',
+     clue:'This animal barks and wags its tail. It is a ___.',
+     wrongHints:{0:'The /d/ sound at the start — write D.',1:'Short "o" — just the letter O.',2:'The last /g/ sound — write G.'}},
+    {word:'sun', sounds:['s','u','n'], emoji:'☀️',
+     clue:'It shines in the sky and keeps us warm. It is the ___.',
+     wrongHints:{0:'The /s/ sound — write S.',1:'Short "u" like in "up" — write U.',2:'The last /n/ sound — write N.'}},
+    {word:'bed', sounds:['b','e','d'], emoji:'🛏️',
+     clue:'You sleep on this at night. It is a ___.',
+     wrongHints:{0:'The /b/ sound — write B.',1:'Short "e" like in "egg" — write E.',2:'The last /d/ sound — write D.'}},
+    {word:'pig', sounds:['p','i','g'], emoji:'🐷',
+     clue:'This farm animal loves mud! It is a ___.',
+     wrongHints:{0:'The /p/ sound — write P.',1:'Short "i" like in "it" — write I.',2:'The last /g/ sound — write G.'}},
+    {word:'cup', sounds:['c','u','p'], emoji:'☕',
+     clue:'You drink juice or water from a ___.',
+     wrongHints:{0:'The /k/ sound here is spelled with C.',1:'Short "u" — write U.',2:'The last /p/ sound — write P.'}},
+    {word:'hat', sounds:['h','a','t'], emoji:'🎩',
+     clue:'You wear this on your head. It is a ___.',
+     wrongHints:{0:'The /h/ sound — write H.',1:'Short "a" — write A.',2:'The last /t/ sound — write T.'}},
+    {word:'net', sounds:['n','e','t'], emoji:'🥅',
+     clue:'A soccer ball goes into a ___.',
+     wrongHints:{0:'The /n/ sound — write N.',1:'Short "e" — write E.',2:'The last /t/ sound — write T.'}}
   ],
   blend: [
-    {word:'ship', sounds:['sh','i','p'], emoji:'🚢', sentence:'The big ship sailed the sea.',
-     heartIdx:-1,
-     wrongHints:{0:'The /sh/ sound uses TWO letters working as a team: SH.',1:'Short "i" — just the letter I.',2:'The last sound /p/ is P.'}},
-    {word:'chin', sounds:['ch','i','n'], emoji:'🧒', sentence:'She has a tiny chin.',
-     heartIdx:-1,
-     wrongHints:{0:'The /ch/ sound uses TWO letters: CH.',1:'Short "i" — just the letter I.',2:'The last sound /n/ is N.'}},
-    {word:'thin', sounds:['th','i','n'], emoji:'📏', sentence:'The paper is very thin.',
-     heartIdx:-1,
-     wrongHints:{0:'The /th/ sound uses TWO letters: TH.',1:'Short "i" — just the letter I.',2:'The last sound /n/ is N.'}},
-    {word:'frog', sounds:['fr','o','g'], emoji:'🐸', sentence:'The frog sat on a lily pad.',
-     heartIdx:-1,
-     wrongHints:{0:'Blend the F and R together: FR.',1:'Short "o" — just the letter O.',2:'The last sound /g/ is G.'}},
-    {word:'clap', sounds:['cl','a','p'], emoji:'👏', sentence:'Clap your hands!',
-     heartIdx:-1,
-     wrongHints:{0:'Blend C and L together: CL.',1:'Short "a" — just the letter A.',2:'The last sound /p/ is P.'}},
-    {word:'drum', sounds:['dr','u','m'], emoji:'🥁', sentence:'He plays the drum.',
-     heartIdx:-1,
-     wrongHints:{0:'Blend D and R together: DR.',1:'Short "u" — just the letter U.',2:'The last sound /m/ is M.'}},
-    {word:'step', sounds:['st','e','p'], emoji:'👣', sentence:'Take one step forward.',
-     heartIdx:-1,
-     wrongHints:{0:'Blend S and T together: ST.',1:'Short "e" — just the letter E.',2:'The last sound /p/ is P.'}}
+    {word:'ship', sounds:['sh','i','p'], emoji:'🚢',
+     clue:'This big boat sails on the ocean. It is a ___.',
+     wrongHints:{0:'The /sh/ sound uses TWO letters together: SH.',1:'Short "i" — write I.',2:'The last /p/ sound — write P.'}},
+    {word:'chin', sounds:['ch','i','n'], emoji:'🧒',
+     clue:'The bottom part of your face under your mouth is your ___.',
+     wrongHints:{0:'The /ch/ sound uses TWO letters: CH.',1:'Short "i" — write I.',2:'The last /n/ sound — write N.'}},
+    {word:'frog', sounds:['fr','o','g'], emoji:'🐸',
+     clue:'This green animal jumps and says ribbit. It is a ___.',
+     wrongHints:{0:'Blend F and R together — write FR.',1:'Short "o" — write O.',2:'The last /g/ sound — write G.'}},
+    {word:'clap', sounds:['cl','a','p'], emoji:'👏',
+     clue:'You do this with your hands to make a sound. You ___.',
+     wrongHints:{0:'Blend C and L together — write CL.',1:'Short "a" — write A.',2:'The last /p/ sound — write P.'}},
+    {word:'drum', sounds:['dr','u','m'], emoji:'🥁',
+     clue:'You hit this instrument with sticks. It is a ___.',
+     wrongHints:{0:'Blend D and R together — write DR.',1:'Short "u" — write U.',2:'The last /m/ sound — write M.'}},
+    {word:'step', sounds:['st','e','p'], emoji:'👣',
+     clue:'You take one of these when you walk. It is a ___.',
+     wrongHints:{0:'Blend S and T together — write ST.',1:'Short "e" — write E.',2:'The last /p/ sound — write P.'}},
+    {word:'swim', sounds:['sw','i','m'], emoji:'🏊',
+     clue:'You do this in a pool or the ocean. You ___.',
+     wrongHints:{0:'Blend S and W together — write SW.',1:'Short "i" — write I.',2:'The last /m/ sound — write M.'}}
   ],
   vowelteam: [
-    {word:'boat', sounds:['b','oa','t'], emoji:'⛵', sentence:'The boat floated on the lake.',
-     heartIdx:-1,
-     wrongHints:{0:'The /b/ sound is B.',1:'The long "o" sound in "boat" uses the vowel team OA — two letters that work together!',2:'The last sound /t/ is T.'}},
-    {word:'rain', sounds:['r','ai','n'], emoji:'🌧️', sentence:'The rain makes puddles.',
-     heartIdx:-1,
-     wrongHints:{0:'The /r/ sound is R.',1:'The long "a" sound in "rain" uses the vowel team AI.',2:'The last sound /n/ is N.'}},
-    {word:'light', sounds:['l','igh','t'], emoji:'💡', sentence:'Turn on the light.',
-     heartIdx:-1,
-     wrongHints:{0:'The /l/ sound is L.',1:'The long "i" sound in "light" is spelled IGH — three letters!',2:'The last sound /t/ is T.'}},
-    {word:'feet', sounds:['f','ee','t'], emoji:'🦶', sentence:'My feet are cold.',
-     heartIdx:-1,
-     wrongHints:{0:'The /f/ sound is F.',1:'The long "e" sound in "feet" uses the vowel team EE.',2:'The last sound /t/ is T.'}},
-    {word:'seal', sounds:['s','ea','l'], emoji:'🦭', sentence:'The seal clapped its flippers.',
-     heartIdx:-1,
-     wrongHints:{0:'The /s/ sound is S.',1:'The long "e" sound in "seal" uses the vowel team EA.',2:'The last sound /l/ is L.'}},
-    {word:'coat', sounds:['c','oa','t'], emoji:'🧥', sentence:'Put on your coat, it is cold!',
-     heartIdx:-1,
-     wrongHints:{0:'The /k/ sound is C.',1:'The long "o" sound uses the vowel team OA.',2:'The last sound /t/ is T.'}},
-    {word:'night', sounds:['n','igh','t'], emoji:'🌙', sentence:'Stars come out at night.',
-     heartIdx:-1,
-     wrongHints:{0:'The /n/ sound is N.',1:'The long "i" sound is spelled IGH — three letters!',2:'The last sound /t/ is T.'}}
+    {word:'boat', sounds:['b','oa','t'], emoji:'⛵',
+     clue:'This floats on water and has a sail. It is a ___.',
+     wrongHints:{0:'The /b/ sound — write B.',1:'The long O sound in this word uses OA — two letters that work as a team!',2:'The last /t/ sound — write T.'}},
+    {word:'rain', sounds:['r','ai','n'], emoji:'🌧️',
+     clue:'Water falls from clouds in the sky. It is ___.',
+     wrongHints:{0:'The /r/ sound — write R.',1:'The long A sound here uses the team AI — write AI.',2:'The last /n/ sound — write N.'}},
+    {word:'light', sounds:['l','igh','t'], emoji:'💡',
+     clue:'This glows and helps you see in the dark. It is a ___.',
+     wrongHints:{0:'The /l/ sound — write L.',1:'The long I sound in this word is spelled IGH — three letters! Write IGH.',2:'The last /t/ sound — write T.'}},
+    {word:'feet', sounds:['f','ee','t'], emoji:'🦶',
+     clue:'You have two of these at the bottom of your legs. They are your ___.',
+     wrongHints:{0:'The /f/ sound — write F.',1:'The long E sound uses the team EE — write EE.',2:'The last /t/ sound — write T.'}},
+    {word:'coat', sounds:['c','oa','t'], emoji:'🧥',
+     clue:'You wear this to stay warm outside. It is a ___.',
+     wrongHints:{0:'The /k/ sound here is spelled C.',1:'The long O sound uses the team OA — write OA.',2:'The last /t/ sound — write T.'}},
+    {word:'night', sounds:['n','igh','t'], emoji:'🌙',
+     clue:'It is dark outside and stars are out. It is ___.',
+     wrongHints:{0:'The /n/ sound — write N.',1:'The long I sound is spelled IGH — write IGH.',2:'The last /t/ sound — write T.'}}
+  ],
+  longer: [
+    {word:'basket', sounds:['b','a','sk','e','t'], emoji:'🧺',
+     clue:'You carry fruit or laundry in a ___.',
+     wrongHints:{0:'Starts with /b/ — write B.',1:'Short "a" sound — write A.',2:'The /sk/ blend — write SK.',3:'Short "e" sound — write E.',4:'Ends with /t/ — write T.'}},
+    {word:'rabbit', sounds:['r','a','bb','i','t'], emoji:'🐇',
+     clue:'This fluffy animal has long ears and hops. It is a ___.',
+     wrongHints:{0:'Starts with /r/ — write R.',1:'Short "a" sound — write A.',2:'The middle /b/ sound is doubled — write BB.',3:'Short "i" sound — write I.',4:'Ends with /t/ — write T.'}},
+    {word:'planet', sounds:['pl','a','n','e','t'], emoji:'🪐',
+     clue:'Earth is one of these. It is a ___.',
+     wrongHints:{0:'Blend P and L — write PL.',1:'Short "a" sound — write A.',2:'The /n/ sound — write N.',3:'Short "e" sound — write E.',4:'Ends with /t/ — write T.'}},
+    {word:'muffin', sounds:['m','u','ff','i','n'], emoji:'🧁',
+     clue:'This is a yummy baked treat. It is a ___.',
+     wrongHints:{0:'Starts with /m/ — write M.',1:'Short "u" sound — write U.',2:'The /f/ sound is doubled here — write FF.',3:'Short "i" sound — write I.',4:'Ends with /n/ — write N.'}},
+    {word:'kitten', sounds:['k','i','tt','e','n'], emoji:'🐱',
+     clue:'A baby cat is called a ___.',
+     wrongHints:{0:'Starts with /k/ — write K.',1:'Short "i" sound — write I.',2:'The /t/ sound is doubled — write TT.',3:'Short "e" sound — write E.',4:'Ends with /n/ — write N.'}},
+    {word:'sunset', sounds:['s','u','n','s','e','t'], emoji:'🌅',
+     clue:'When the sun goes down at the end of the day it is called a ___.',
+     wrongHints:{0:'Starts with /s/ — write S.',1:'Short "u" sound — write U.',2:'The /n/ sound — write N.',3:'Second /s/ sound — write S.',4:'Short "e" sound — write E.',5:'Ends with /t/ — write T.'}},
+    {word:'rocket', sounds:['r','o','ck','e','t'], emoji:'🚀',
+     clue:'Astronauts fly to space in a ___.',
+     wrongHints:{0:'Starts with /r/ — write R.',1:'Short "o" sound — write O.',2:'The /k/ sound in the middle is spelled CK — write CK.',3:'Short "e" sound — write E.',4:'Ends with /t/ — write T.'}},
+    {word:'winter', sounds:['w','i','n','t','er'], emoji:'❄️',
+     clue:'The coldest season of the year is called ___.',
+     wrongHints:{0:'Starts with /w/ — write W.',1:'Short "i" sound — write I.',2:'The /n/ sound — write N.',3:'The /t/ sound — write T.',4:'The /er/ ending — write ER.'}}
   ],
   heart: [
-    {word:'said', sounds:['s','ai','d'], emoji:'💬', sentence:'She said hello to her friend.',
+    {word:'said', sounds:['s','ai','d'], emoji:'💬',
+     clue:'When you talked, you ___ something.',
      heartIdx:1,
-     heartHint:'In the word "said", the /e/ sound is spelled AI — a rule-breaker! Learn this part by heart.',
-     wrongHints:{0:'The /s/ sound is S.',1:'Tricky! The short /e/ sound in "said" is spelled AI — that is the heart part!',2:'The last sound /d/ is D.'}},
-    {word:'was', sounds:['w','a','z'], emoji:'🤔', sentence:'It was a sunny day.',
+     heartHint:'In "said" the middle sound is /e/ but it is spelled AI — that is the tricky heart part!',
+     wrongHints:{0:'Starts with /s/ — write S.',1:'Heart word! The /e/ sound here is sneakily spelled AI — write AI.',2:'Ends with /d/ — write D.'}},
+    {word:'was', sounds:['w','a','z'], emoji:'🤔',
+     clue:'Yesterday it ___ sunny outside.',
      heartIdx:2,
-     heartHint:'In "was", the /z/ sound at the end is spelled with the letter S — a rule-breaker!',
-     wrongHints:{0:'The /w/ sound is W.',1:'The "a" in "was" sounds like /u/ — that is unusual!',2:'Tricky! The /z/ sound at the end of "was" is spelled S — the heart part!'}},
-    {word:'the', sounds:['th','e'], emoji:'👉', sentence:'Look at the big star.',
+     heartHint:'In "was" the last sound is /z/ but it is spelled with the letter S — that is the tricky part!',
+     wrongHints:{0:'Starts with /w/ — write W.',1:'The short "a" sound — write A.',2:'Heart word! The /z/ sound at the end is spelled S — write S.'}},
+    {word:'they', sounds:['th','ey'], emoji:'👫',
+     clue:'Two friends are walking together. ___ are friends.',
      heartIdx:1,
-     heartHint:'The "e" in "the" makes a quiet /uh/ sound — it is a rule-breaker you just have to know!',
-     wrongHints:{0:'The /th/ sound uses TH.',1:'Heart word alert! The "e" in "the" is a tricky one — just learn it by heart.'}},
-    {word:'have', sounds:['h','a','ve'], emoji:'🖐️', sentence:'I have two puppies.',
+     heartHint:'The long A sound in "they" is spelled EY — that is the heart part!',
+     wrongHints:{0:'The /th/ sound uses TH — write TH.',1:'Heart word! The long A sound is spelled EY — write EY.'}},
+    {word:'have', sounds:['h','a','ve'], emoji:'🖐️',
+     clue:'I ___ two eyes and one nose.',
      heartIdx:2,
-     heartHint:'The VE at the end of "have" has a silent E — the word says /hav/ not /have/. Heart part!',
-     wrongHints:{0:'The /h/ sound is H.',1:'Short "a" sound — just the letter A.',2:'Heart word! The /v/ sound at the end is spelled VE with a silent E.'}},
-    {word:'they', sounds:['th','ey'], emoji:'👫', sentence:'They went to school together.',
-     heartIdx:1,
-     heartHint:'The long "a" sound in "they" is spelled EY — that is the tricky heart part!',
-     wrongHints:{0:'The /th/ sound uses TH.',1:'Heart word! The long "a" sound in "they" is spelled EY — learn this by heart.'}},
-    {word:'come', sounds:['c','o','me'], emoji:'🏃', sentence:'Come and play with us!',
+     heartHint:'The end of "have" is spelled VE with a silent E — the word says /hav/ not /hayv/!',
+     wrongHints:{0:'Starts with /h/ — write H.',1:'Short "a" sound — write A.',2:'Heart word! The /v/ ending is spelled VE with a silent E — write VE.'}},
+    {word:'come', sounds:['c','o','me'], emoji:'🏃',
+     clue:'Please ___ and play with me!',
      heartIdx:2,
-     heartHint:'The ME at the end of "come" is silent — it says /kum/ not /kohm/. Heart part!',
-     wrongHints:{0:'The /k/ sound is spelled C.',1:'The "o" in "come" sounds like /u/ — unusual!',2:'Heart word! The E at the end is silent — spelled ME but quiet.'}},
-    {word:'here', sounds:['h','er','e'], emoji:'📍', sentence:'Come stand right here.',
-     heartIdx:2,
-     heartHint:'The silent E at the end of "here" is the heart part — it makes the ER sound long.',
-     wrongHints:{0:'The /h/ sound is H.',1:'The /ear/ sound here is spelled ER.',2:'Heart word! That final E is silent — it changes the vowel sound.'}}
+     heartHint:'In "come" the end is spelled ME but the E is silent — the word says /kum/!',
+     wrongHints:{0:'Starts with /k/ — write C.',1:'This "o" sounds like /u/ — write O.',2:'Heart word! The ending sounds like /m/ but is spelled ME — write ME.'}}
   ]
 };
 
 var spellCat = 'cvc';
 var spellPool = [], spellPoolIdx = 0;
 var spellQ = 0, spellSoundPts = 0, spellRepairPts = 0, spellTotalPts = 0;
-var currentSpellWord = null, spellPhase = 'input'; // phases: input | repair | done
+var currentSpellWord = null, spellPhase = 'input';
+
+// Patch addStars and updateHUD to track spelling stars
+var _spellStars = 0;
+(function() {
+  var _origAdd = addStars;
+  addStars = function(n, subj) {
+    if (subj === 'spelling') _spellStars += n;
+    _origAdd(n, subj);
+  };
+  var _origHUD = updateHUD;
+  updateHUD = function() {
+    _origHUD();
+    var hs = el('hs-spelling'); if (hs) hs.textContent = _spellStars;
+  };
+})();
 
 el('spell-cats').addEventListener('click', function(e) {
   var t = e.target.closest('[data-scat]');
   if (!t) return;
-  spellCat = t.dataset.scat; spellQ = 0; spellSoundPts = 0; spellRepairPts = 0; spellTotalPts = 0;
-  document.querySelectorAll('#spell-cats .cat-tab').forEach(function(b) { b.classList.toggle('active', b.dataset.scat === spellCat); });
+  spellCat = t.dataset.scat;
+  spellQ = 0; spellSoundPts = 0; spellRepairPts = 0; spellTotalPts = 0;
+  document.querySelectorAll('#spell-cats .cat-tab').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.scat === spellCat);
+  });
   initSpelling();
 });
 
@@ -1301,8 +1350,7 @@ el('spell-check-btn').addEventListener('click', checkSpelling);
 el('spell-next-btn').addEventListener('click', nextSpellWord);
 
 function initSpelling() {
-  var words = SPELL_WORDS[spellCat].slice();
-  // shuffle into a non-repeating pool
+  var words = SPELL_WORDS[spellCat];
   spellPool = words.slice().sort(function() { return Math.random() - 0.5; });
   spellPoolIdx = 0;
   spellQ = 0; spellSoundPts = 0; spellRepairPts = 0; spellTotalPts = 0;
@@ -1319,34 +1367,42 @@ function loadSpellWord() {
   currentSpellWord = spellPool[spellPoolIdx];
   spellPoolIdx++;
 
+  var w = currentSpellWord;
   el('spell-progress').style.width = Math.min(Math.round(spellQ / 10 * 100), 100) + '%';
   el('spell-q-count').textContent = 'Word ' + (spellQ % 10 + 1) + '/10';
   el('spell-score-inline').textContent = 'Sound Points: ' + spellSoundPts;
 
-  // Robot speech bubble
+  // Robot speech — NO word text, just instruction with the clue
   el('robot-face').textContent = '🤖';
-  el('robot-speech').textContent = 'Can you spell the word for this picture? Listen: ' + currentSpellWord.word.toUpperCase() + '... "' + currentSpellWord.sentence + '"';
+  el('robot-speech').textContent = 'Look at the picture! ' + w.clue.replace('___', '?');
 
-  // Word prompt
-  el('spell-word-prompt').innerHTML = '<span class="word-image">' + currentSpellWord.emoji + '</span><div class="word-cue">' + currentSpellWord.sentence + '</div>';
+  // Show picture emoji ONLY — no word text until after answer
+  el('spell-word-prompt').innerHTML =
+    '<div style="font-size:4rem;margin-bottom:8px">' + w.emoji + '</div>' +
+    '<div style="font-family:\'Fredoka One\',sans-serif;font-size:1rem;color:var(--text-dim);margin-bottom:4px">Type one sound in each box, then press <strong style="color:var(--navy)">Check Repair!</strong></div>';
 
   // Build sound boxes
-  var boxesHtml = '<div class="sound-box-row" id="sound-box-row">';
-  currentSpellWord.sounds.forEach(function(s, i) {
-    var isHeart = currentSpellWord.heartIdx === i;
-    var heartBadge = isHeart ? '<span class="heart-badge">❤️</span>' : '';
-    var labelTxt = 'Sound ' + (i + 1);
-    if (currentSpellWord.sounds.length === 2) {
-      labelTxt = i === 0 ? 'Start' : 'End';
+  var numSounds = w.sounds.length;
+  var boxesHtml = '<div class="sound-box-row">';
+  w.sounds.forEach(function(s, i) {
+    var isHeart = (w.heartIdx !== undefined) && w.heartIdx === i;
+    var heartBadge = isHeart ? '<span class="heart-badge">&#x2764;&#xFE0F;</span>' : '';
+    // Label
+    var label = '';
+    if (numSounds <= 3) {
+      label = i === 0 ? 'START' : i === numSounds - 1 ? 'END' : 'MIDDLE';
     } else {
-      if (i === 0) labelTxt = 'Start';
-      else if (i === currentSpellWord.sounds.length - 1) labelTxt = 'End';
-      else labelTxt = 'Middle';
+      label = 'Sound ' + (i + 1);
     }
-    var inputClass = isHeart ? ' heart-box' : '';
+    var boxClass = isHeart ? ' heart-box' : '';
+    // Width hint: wider boxes for longer sounds like 'igh', 'ck', 'er'
+    var boxWidth = s.length >= 3 ? '88px' : s.length === 2 ? '80px' : '68px';
     boxesHtml += '<div class="sound-box" id="sbox-' + i + '">' + heartBadge +
-      '<input type="text" class="spell-input' + inputClass + '" id="sinput-' + i + '" maxlength="4" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="...">' +
-      '<div class="sound-label">' + labelTxt + '</div></div>';
+      '<input type="text" class="spell-input' + boxClass + '" id="sinput-' + i + '" ' +
+      'maxlength="4" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="..." ' +
+      'style="width:' + boxWidth + ';height:68px;font-size:1.5rem">' +
+      '<div class="sound-label">' + label + '</div>' +
+      '</div>';
   });
   boxesHtml += '</div>';
 
@@ -1355,23 +1411,32 @@ function loadSpellWord() {
   el('spell-check-btn').style.display = 'inline-flex';
   el('spell-next-btn').style.display = 'none';
 
-  // focus first input
-  setTimeout(function() {
-    var first = el('sinput-0');
-    if (first) first.focus();
-  }, 100);
-
-  // Auto-advance on Enter in any input
-  currentSpellWord.sounds.forEach(function(s, i) {
+  // Tab / Enter navigation between boxes
+  w.sounds.forEach(function(s, i) {
     var inp = el('sinput-' + i);
     if (!inp) return;
     inp.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
         var next = el('sinput-' + (i + 1));
-        if (next) next.focus(); else checkSpelling();
+        if (next) next.focus(); else el('spell-check-btn').focus();
       }
     });
+    // Auto-advance when box is "full" for single-char boxes
+    if (s.length === 1) {
+      inp.addEventListener('input', function() {
+        if (inp.value.length >= 1) {
+          var next = el('sinput-' + (i + 1));
+          if (next) next.focus();
+        }
+      });
+    }
   });
+
+  // Focus first box
+  setTimeout(function() {
+    var first = el('sinput-0'); if (first) first.focus();
+  }, 120);
 }
 
 function checkSpelling() {
@@ -1379,10 +1444,8 @@ function checkSpelling() {
   el('spell-check-btn').style.display = 'none';
 
   var w = currentSpellWord;
-  var totalSounds = w.sounds.length;
-  var correctSounds = 0;
+  var correctCount = 0;
   var wrongBoxes = [];
-  var repairNeeded = [];
 
   w.sounds.forEach(function(correctSound, i) {
     var inp = el('sinput-' + i);
@@ -1390,102 +1453,103 @@ function checkSpelling() {
     var typed = inp.value.trim().toLowerCase();
     var expected = correctSound.toLowerCase();
     if (typed === expected) {
-      correctSounds++;
+      correctCount++;
       inp.classList.add('correct-box');
       inp.disabled = true;
     } else {
       inp.classList.add('wrong-box');
       wrongBoxes.push(i);
-      repairNeeded.push(i);
     }
   });
 
-  // Award sound points: 10 per correct sound on first try
-  var soundPtsEarned = correctSounds * 10;
+  var soundPtsEarned = correctCount * 10;
   spellSoundPts += soundPtsEarned;
+  spellTotalPts += soundPtsEarned;
   el('spell-score-inline').textContent = 'Sound Points: ' + spellSoundPts;
 
-  // Build feedback
+  // NOW reveal the word in the prompt (after checking)
+  el('spell-word-prompt').innerHTML =
+    '<div style="font-size:3rem;margin-bottom:4px">' + w.emoji + '</div>' +
+    '<div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:var(--navy);letter-spacing:2px">' +
+    w.word.toUpperCase() + '</div>';
+
   var fbHtml = '';
-  if (correctSounds === totalSounds) {
-    // Perfect!
+
+  if (wrongBoxes.length === 0) {
+    // PERFECT
     spellPhase = 'done';
     el('robot-face').textContent = '🥳';
-    el('robot-speech').textContent = 'AMAZING! You repaired my word perfectly! The word is: ' + w.word.toUpperCase();
+    el('robot-speech').textContent = 'WOW! You fixed my word perfectly! The word is ' + w.word.toUpperCase() + '!';
+
     fbHtml = '<div class="spell-feedback-card spell-fb-correct">';
-    fbHtml += '<strong>🎉 Perfect repair! +' + soundPtsEarned + ' sound points!</strong><br>';
-    fbHtml += 'You spelled <strong>' + w.word.toUpperCase() + '</strong> exactly right! Every sound matched!';
-    // Point pops
+    fbHtml += '<div style="font-size:1.1rem;font-weight:800;margin-bottom:6px">🎉 Perfect! +' + soundPtsEarned + ' sound points!</div>';
+    fbHtml += 'You spelled <strong>' + w.word.toUpperCase() + '</strong> exactly right! Every sound box was correct!<br><br>';
+    fbHtml += 'Sounds you got: ';
     w.sounds.forEach(function(s) {
-      fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span>';
+      fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span> ';
     });
     fbHtml += '</div>';
+
     spellQ++;
-    var starPts = Math.ceil(soundPtsEarned / 10);
-    addStars(starPts, 'spelling');
-    spellTotalPts += soundPtsEarned;
+    addStars(Math.max(1, Math.ceil(soundPtsEarned / 10)), 'spelling');
     updateSpellScoreDisplay();
     el('spell-next-btn').style.display = 'inline-flex';
   } else {
-    // Partial — need repair
+    // PARTIAL — enter repair phase
     spellPhase = 'repair';
     el('robot-face').textContent = '🔧';
 
-    var correctList = '';
-    w.sounds.forEach(function(s, i) {
-      if (wrongBoxes.indexOf(i) < 0) {
-        correctList += '/' + s + '/ ';
-      }
-    });
-
-    el('robot-speech').textContent = correctSounds > 0
-      ? 'Great listening! You got ' + correctSounds + ' sound' + (correctSounds > 1 ? 's' : '') + ' right! Now let\'s repair the rest!'
-      : 'No worries! Let\'s fix the sounds together!';
+    if (correctCount > 0) {
+      el('robot-speech').textContent = 'Great listening! You got ' + correctCount + ' sound' + (correctCount > 1 ? 's' : '') + ' right! Now let\'s fix the orange boxes!';
+    } else {
+      el('robot-speech').textContent = 'Nice try! Let\'s fix the word together — look at the hints below!';
+    }
 
     fbHtml = '<div class="spell-feedback-card spell-fb-partial">';
-    fbHtml += '<strong>You scored ' + soundPtsEarned + ' sound points!</strong><br>';
-    if (correctSounds > 0) {
-      fbHtml += 'Sounds you nailed: ';
+    fbHtml += '<div style="font-size:1rem;font-weight:800;margin-bottom:8px">';
+    if (correctCount > 0) {
+      fbHtml += 'You scored ' + soundPtsEarned + ' sound points! ';
       w.sounds.forEach(function(s, i) {
-        if (wrongBoxes.indexOf(i) < 0) fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span>';
-        else fbHtml += '<span class="point-pop point-pop-amber">/' + s + '/ needs fixing</span>';
+        if (wrongBoxes.indexOf(i) < 0) fbHtml += '<span class="point-pop point-pop-green">/' + s + '/ ✓ +10</span> ';
       });
-      fbHtml += '<br>';
     }
-    fbHtml += '<strong>Now repair the ' + (wrongBoxes.length === 1 ? 'box' : 'boxes') + ' shown in orange:</strong><br>';
+    fbHtml += '</div>';
+    fbHtml += '<div style="font-size:1rem;font-weight:700;margin-bottom:8px">Fix the orange boxes:</div>';
 
-    // Teaching hints for each wrong box
     wrongBoxes.forEach(function(i) {
-      var isHeart = w.heartIdx === i;
-      var hint = (w.wrongHints && w.wrongHints[i]) ? w.wrongHints[i] : 'Type the correct letters for sound ' + (i + 1) + '.';
-      if (isHeart && w.heartHint) hint = '❤️ Heart Word Alert! ' + w.heartHint;
-      fbHtml += '<div style="margin-top:6px;font-size:0.88rem">Sound ' + (i + 1) + ': ' + hint + '</div>';
-      // Clear the wrong input and re-enable it
+      var isHeart = (w.heartIdx !== undefined) && w.heartIdx === i;
+      var hint = (w.wrongHints && w.wrongHints[i]) ? w.wrongHints[i] : 'Listen carefully and try again.';
+      if (isHeart && w.heartHint) hint = '❤️ Heart Word! ' + w.heartHint;
+      fbHtml += '<div style="background:white;border-radius:8px;padding:8px 12px;margin:5px 0;font-size:0.92rem;border-left:4px solid var(--amber)">';
+      fbHtml += '<strong>Box ' + (i + 1) + ':</strong> ' + hint + '</div>';
+      // Clear and re-enable the wrong input
       var inp = el('sinput-' + i);
       if (inp) {
         inp.value = '';
         inp.disabled = false;
         inp.classList.remove('wrong-box');
         if (isHeart) inp.classList.add('heart-box');
-        setTimeout(function() { inp.focus(); }, 100);
       }
     });
-    fbHtml += '</div>';
 
-    // Show a repair-check button
-    var repairBtnHtml = '<div style="text-align:center;margin-top:10px"><button class="btn btn-teal btn-sm" id="spell-repair-btn">✅ Check My Repairs</button></div>';
-    fbHtml += repairBtnHtml;
+    fbHtml += '<div style="text-align:center;margin-top:12px">';
+    fbHtml += '<button class="btn btn-teal btn-sm" id="spell-repair-btn" style="font-size:1rem;padding:12px 28px">✅ Check My Fixes!</button>';
+    fbHtml += '</div></div>';
 
-    spellTotalPts += soundPtsEarned;
+    // Focus first wrong box
+    setTimeout(function() {
+      var firstWrong = el('sinput-' + wrongBoxes[0]);
+      if (firstWrong) firstWrong.focus();
+    }, 150);
+
     updateSpellScoreDisplay();
   }
 
   el('spell-feedback').innerHTML = fbHtml;
 
-  // Attach repair check listener
   var repBtn = el('spell-repair-btn');
   if (repBtn) {
-    repBtn.addEventListener('click', function() { checkRepairs(repairNeeded); });
+    repBtn.addEventListener('click', function() { checkRepairs(wrongBoxes); });
   }
 }
 
@@ -1500,8 +1564,7 @@ function checkRepairs(repairBoxes) {
     var inp = el('sinput-' + i);
     if (!inp) return;
     var typed = inp.value.trim().toLowerCase();
-    var expected = w.sounds[i].toLowerCase();
-    if (typed === expected) {
+    if (typed === w.sounds[i].toLowerCase()) {
       inp.classList.add('fixed-box');
       inp.disabled = true;
       repairPtsEarned += 5;
@@ -1514,40 +1577,42 @@ function checkRepairs(repairBoxes) {
 
   spellRepairPts += repairPtsEarned;
   spellTotalPts += repairPtsEarned;
+  updateSpellScoreDisplay();
 
   var fbHtml = '';
   if (allFixed) {
     spellPhase = 'done';
     el('robot-face').textContent = '😄';
-    el('robot-speech').textContent = 'Fixed! The word ' + w.word.toUpperCase() + ' is repaired! Bolt thanks you!';
+    el('robot-speech').textContent = 'Fixed it! The word ' + w.word.toUpperCase() + ' is repaired! Great job!';
     fbHtml = '<div class="spell-feedback-card spell-fb-repair">';
-    fbHtml += '<strong>🔧 Repair complete! +' + repairPtsEarned + ' repair bonus points!</strong><br>';
-    fbHtml += 'You fixed the word <strong>' + w.word.toUpperCase() + '</strong>! Great perseverance!';
+    fbHtml += '<div style="font-size:1.05rem;font-weight:800;margin-bottom:6px">🔧 All fixed! +' + repairPtsEarned + ' repair bonus points!</div>';
+    fbHtml += 'You repaired the word <strong>' + w.word.toUpperCase() + '</strong>! Bolt is very happy!';
     fbHtml += '</div>';
     spellQ++;
-    var starPts = Math.max(1, Math.ceil(repairPtsEarned / 5));
-    addStars(starPts, 'spelling');
-    updateSpellScoreDisplay();
+    addStars(Math.max(1, Math.ceil(repairPtsEarned / 5)), 'spelling');
     el('spell-next-btn').style.display = 'inline-flex';
   } else {
-    // Show answers for still-wrong boxes
+    // Show the correct letters for remaining wrong boxes
     el('robot-face').textContent = '💡';
-    el('robot-speech').textContent = 'Almost! Here is the correct spelling — type it in and you will get it!';
+    el('robot-speech').textContent = 'So close! Look carefully — here are the exact letters to type:';
     fbHtml = '<div class="spell-feedback-card spell-fb-repair">';
-    fbHtml += '<strong>So close! Here are the correct letters:</strong><br>';
+    fbHtml += '<div style="font-size:1rem;font-weight:800;margin-bottom:8px">Almost there! Type these letters:</div>';
     stillWrong.forEach(function(i) {
       var inp = el('sinput-' + i);
       if (inp) { inp.value = ''; inp.disabled = false; inp.classList.remove('wrong-box'); }
-      fbHtml += '<div style="margin:4px 0">Box ' + (i + 1) + ': type <strong style="color:var(--teal)">' + w.sounds[i].toUpperCase() + '</strong></div>';
+      fbHtml += '<div style="font-size:1.1rem;margin:6px 0">Box ' + (i+1) + ': type <strong style="color:var(--teal);font-size:1.3rem">' + w.sounds[i].toUpperCase() + '</strong></div>';
     });
-    fbHtml += '<div style="text-align:center;margin-top:10px"><button class="btn btn-navy btn-sm" id="spell-repair-btn">✅ Check Again</button></div>';
-    fbHtml += '</div>';
-    updateSpellScoreDisplay();
+    fbHtml += '<div style="text-align:center;margin-top:12px">';
+    fbHtml += '<button class="btn btn-navy btn-sm" id="spell-repair-btn" style="font-size:1rem;padding:12px 28px">✅ Check Again!</button>';
+    fbHtml += '</div></div>';
     el('spell-feedback').innerHTML = fbHtml;
-    var repBtn2 = el('spell-repair-btn');
-    if (repBtn2) repBtn2.addEventListener('click', function() { checkRepairs(stillWrong); });
+    var rb = el('spell-repair-btn');
+    if (rb) rb.addEventListener('click', function() { checkRepairs(stillWrong); });
+    // Also show next button so they are never truly stuck
+    el('spell-next-btn').style.display = 'inline-flex';
     return;
   }
+
   el('spell-feedback').innerHTML = fbHtml;
 }
 
@@ -1560,13 +1625,13 @@ function updateSpellScoreDisplay() {
   el('sp-sound').textContent = spellSoundPts;
   el('sp-repair').textContent = spellRepairPts;
   el('sp-total').textContent = spellTotalPts;
-  var hs = el('hs-spelling'); if (hs) hs.textContent = spellStars;
+  var hs = el('hs-spelling'); if (hs) hs.textContent = _spellStars;
 }
 
 // Hook spelling into showSection
-var origShowSection = showSection;
+var _origShowSection = showSection;
 showSection = function(id) {
-  origShowSection(id);
+  _origShowSection(id);
   if (id === 'spelling') initSpelling();
 };
 
